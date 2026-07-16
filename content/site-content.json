@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "kicker": "Lecturer · Researcher",
+    "availability": "Open for Research Collaboration",
+    "role": "AI Ethics & Techno-Ethics, HCI, Information Studies, Requirements Engineering & Socio-technical Systems",
+    "intro": "Lecturer in Techno-Anthropology at Aalborg University and Assistant Lecturer at the IT University of Copenhagen. My roles span research, teaching, technology projects, and interdisciplinary collaboration."
+  },
+  "now": {
+    "eyebrow": "Aalborg University is hiring",
+    "updated": "Updated 16 July 2026",
+    "title": "I may be looking for my next boss—and my next office-mate.",
+    "body": "Aalborg University is hiring an Assistant Professor in Responsible Technology Futures to join the Re-TECH research environment. We take the work seriously, but not ourselves all the time: the room is bright, the conversations are lively, and ideas have a habit of becoming papers, projects, teaching, and the occasional good laugh. If participatory design, engineering or interdisciplinary education sounds like your territory, perhaps the beautiful Copenhagen office is waiting for you.",
+    "deadline": "Apply by 6 September 2026",
+    "link_label": "Meet your possible future colleagues",
+    "link": "https://www.stillinger.aau.dk/videnskabelige-stillinger/vis-stilling/vacancyId/953686"
+  },
+  "reflection": {
+    "title": "Between two mornings",
+    "paragraphs": [
+      "Some nights I am still awake when morning begins. As an immigrant living between places and time zones, I carry more than one clock inside me. Once, my days spilled easily into rooms full of friends; now I can be a night crawler bargaining with an early class—wondering whether my partner will wake soon and leave for work, whether tomorrow’s slides are ready, whether a deadline has quietly moved closer. And then: oh no, LinkedIn. Perhaps I should look.",
+      "Behind these smaller alarms lives a larger one. My parents are growing older far away. I call and hear a tired voice, a cough, or the quiet suggestion that something is missing. Distance turns love into questions I cannot always answer: Are they well? Did I call enough? What does it mean to build a life here while part of my heart keeps listening seven thousand kilometres away?",
+      "Still, life refuses to be only worry. The sun pours gold across the sky—goldy-gold, almost unreal. A ridiculous meme makes me laugh. Friends appear together on a phone screen, smiling from the other side of the world, and for a while the kilometres disappear. Then an email arrives: the paper is accepted. A colleague says something kind. A small accomplishment knocks at the door, and I catch myself smiling before anyone else can see.",
+      "Yes, life goes on. Time passes through unfinished slides, missed sleep, distant voices, good news, private laughter, and skies that keep changing colour. Night gives back the morning. The new day comes. And somehow, so do I."
+    ],
+    "more_label": "Click here for more"
+  },
+  "updates": [
+    {
+      "date": "2026-06",
+      "display_date": "June 2026",
+      "category": "Conference",
+      "title": "PAEE/ALE 2026, Tokyo",
+      "summary": "Two research outputs on persona-grounded AI informants were presented through the Egalitarian project.",
+      "published": true
+    },
+    {
+      "date": "2026-06",
+      "display_date": "June 2026",
+      "category": "Academic community",
+      "title": "Techno-Anthropology Thesis Showcase 2026",
+      "summary": "Contributed to the AAU Copenhagen event connecting graduates, alumni, researchers, and professional guests.",
+      "published": true
+    },
+    {
+      "date": "2026-05",
+      "display_date": "May–June 2026",
+      "category": "Academic service",
+      "title": "Reviewer for ICIS 2026",
+      "summary": "Peer-reviewed manuscripts for the International Conference on Information Systems.",
+      "published": true
+    },
+    {
+      "date": "2026-02",
+      "display_date": "February 2026",
+      "category": "Publication",
+      "title": "“Designing for justice” accepted",
+      "summary": "Accepted for publication in Science and Engineering Ethics.",
+      "published": true
+    },
+    {
+      "date": "2026-02",
+      "display_date": "February 2026",
+      "category": "Appointment",
+      "title": "Joined Aalborg University as Lecturer",
+      "summary": "Teaching and coordinating in the MSc Techno-Anthropology programme while continuing at ITU and Egalitarian.",
+      "published": true
+    }
+  ],
+  "contact": {
+    "intro": "Choose the route that suits you."
+  }
+}

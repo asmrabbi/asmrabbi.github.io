@@ -1,0 +1,132 @@
+media:
+  input: public/assets/images/uploads
+  output: /public/assets/images/uploads
+
+settings:
+  content:
+    merge: true
+  commit:
+    identity: user
+    templates:
+      update: "content: update {path}"
+
+content:
+  - name: website-content
+    label: Website content
+    type: file
+    path: content/site-content.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: hero
+        label: Homepage introduction
+        type: object
+        fields:
+          - name: kicker
+            label: Short role line
+            type: string
+            required: true
+          - name: availability
+            label: Availability status
+            type: string
+            required: true
+          - name: role
+            label: Research and professional areas
+            type: text
+            required: true
+          - name: intro
+            label: Introduction
+            type: text
+            required: true
+      - name: reflection
+        label: Life reflection
+        type: object
+        fields:
+          - name: title
+            label: Title
+            type: string
+            required: true
+          - name: paragraphs
+            label: Paragraphs
+            type: text
+            list:
+              min: 1
+          - name: more_label
+            label: Future page button
+            type: string
+            required: true
+      - name: now
+        label: Now feature
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small heading
+            type: string
+            required: true
+          - name: updated
+            label: Updated date
+            type: string
+            required: true
+          - name: title
+            label: Main title
+            type: string
+            required: true
+          - name: body
+            label: Message
+            type: text
+            required: true
+          - name: deadline
+            label: Date or deadline line
+            type: string
+            required: true
+          - name: link_label
+            label: Link wording
+            type: string
+            required: true
+          - name: link
+            label: Link URL
+            type: string
+            required: true
+      - name: updates
+        label: Recent activity
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{display_date} — {title}"
+        fields:
+          - name: date
+            label: Machine-readable month
+            type: string
+            required: true
+            pattern:
+              regex: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+              message: "Use YYYY-MM, for example 2026-07"
+          - name: display_date
+            label: Date shown on website
+            type: string
+            required: true
+          - name: category
+            label: Category
+            type: string
+            required: true
+          - name: title
+            label: Title
+            type: string
+            required: true
+          - name: summary
+            label: Description
+            type: text
+            required: true
+          - name: published
+            label: Show on website
+            type: boolean
+      - name: contact
+        label: Contact section
+        type: object
+        fields:
+          - name: intro
+            label: Short invitation
+            type: text
+            required: true
