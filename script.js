@@ -1044,6 +1044,38 @@ const visitorCounter = document.querySelector("#visitor-counter");
 const visitorCountValue = document.querySelector("#visitor-count-value");
 const visitorCountLabel = document.querySelector("#visitor-count-label");
 const isLocalPreview = location.protocol === "file:" || location.hostname === "127.0.0.1" || location.hostname === "localhost";
+const counterCacheKey = "rabbi-profile-last-visit-count";
+
+function readCachedVisitorCount() {
+  try {
+    const count = Number(localStorage.getItem(counterCacheKey));
+    return Number.isFinite(count) && count > 0 ? count : null;
+  } catch {
+    return null;
+  }
+}
+
+function showVisitorCount(count, cached = false) {
+  visitorCounter.hidden = false;
+  visitorCountValue.textContent = count.toLocaleString();
+  visitorCountLabel.textContent = "page visits";
+  visitorCounter.title = cached ? "Last available page-visit count; updating in the background" : "Counts page visits, not unique people";
+}
+
+async function requestVisitorCount(url) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    if (!response.ok) throw new Error("Counter unavailable");
+    const data = await response.json();
+    const count = Number(data.count ?? data.value);
+    if (!Number.isFinite(count)) throw new Error("Invalid counter response");
+    return count;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
 
 async function updateVisitorCounter() {
   if (isLocalPreview) {
@@ -1054,6 +1086,15 @@ async function updateVisitorCounter() {
   }
 
   const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits/";
+  const cachedCount = readCachedVisitorCount();
+  if (cachedCount !== null) showVisitorCount(cachedCount, true);
+  else {
+    visitorCounter.hidden = false;
+    visitorCountValue.textContent = "…";
+    visitorCountLabel.textContent = "page visits";
+    visitorCounter.title = "Updating the page-visit count";
+  }
+
   let countedThisSession = false;
   try {
     countedThisSession = sessionStorage.getItem("rabbi-profile-visit-counted") === "yes";
@@ -1062,17 +1103,32 @@ async function updateVisitorCounter() {
   }
 
   try {
-    const response = await fetch(countedThisSession ? counterBase : `${counterBase}up/`);
-    if (!response.ok) throw new Error("Counter unavailable");
-    const data = await response.json();
-    visitorCountValue.textContent = Number(data.count).toLocaleString();
+    let count;
+    try {
+      count = await requestVisitorCount(countedThisSession ? counterBase : `${counterBase}up/`);
+    } catch {
+      // If incrementing was slow or rate-limited, retrieve the current value without incrementing again.
+      count = await requestVisitorCount(counterBase);
+    }
+
+    showVisitorCount(count);
+    try {
+      localStorage.setItem(counterCacheKey, String(count));
+    } catch {
+      // The live value remains visible when persistent storage is blocked.
+    }
     try {
       sessionStorage.setItem("rabbi-profile-visit-counted", "yes");
     } catch {
       // Do not hide a valid count when storage is unavailable.
     }
   } catch {
-    visitorCounter.hidden = true;
+    visitorCounter.hidden = false;
+    if (cachedCount === null) {
+      visitorCountValue.textContent = "—";
+      visitorCountLabel.textContent = "visits temporarily unavailable";
+      visitorCounter.title = "The counter service is temporarily unavailable";
+    }
   }
 }
 
