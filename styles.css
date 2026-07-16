@@ -2240,15 +2240,16 @@ button.orbit-crumb:focus-visible {
 }
 
 .site-footer {
-  padding-block: 25px;
+  padding-block: 12px;
   background: #fff;
 }
 
 .footer-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 25px;
+  gap: 14px;
   color: var(--muted);
   font-size: 0.8rem;
 }
