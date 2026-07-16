@@ -2240,7 +2240,7 @@ button.orbit-crumb:focus-visible {
 }
 
 .site-footer {
-  padding-block: 12px;
+  padding-block: 7px;
   background: #fff;
 }
 
@@ -2249,9 +2249,9 @@ button.orbit-crumb:focus-visible {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .footer-row p {
