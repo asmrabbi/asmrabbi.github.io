@@ -1054,13 +1054,23 @@ async function updateVisitorCounter() {
   }
 
   const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits/";
-  const countedThisSession = sessionStorage.getItem("rabbi-profile-visit-counted") === "yes";
+  let countedThisSession = false;
+  try {
+    countedThisSession = sessionStorage.getItem("rabbi-profile-visit-counted") === "yes";
+  } catch {
+    // The public count still works when a browser blocks session storage.
+  }
+
   try {
     const response = await fetch(countedThisSession ? counterBase : `${counterBase}up/`);
     if (!response.ok) throw new Error("Counter unavailable");
     const data = await response.json();
     visitorCountValue.textContent = Number(data.count).toLocaleString();
-    sessionStorage.setItem("rabbi-profile-visit-counted", "yes");
+    try {
+      sessionStorage.setItem("rabbi-profile-visit-counted", "yes");
+    } catch {
+      // Do not hide a valid count when storage is unavailable.
+    }
   } catch {
     visitorCounter.hidden = true;
   }
