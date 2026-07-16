@@ -1053,10 +1053,10 @@ async function updateVisitorCounter() {
     return;
   }
 
-  const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits";
+  const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits/";
   const countedThisSession = sessionStorage.getItem("rabbi-profile-visit-counted") === "yes";
   try {
-    const response = await fetch(countedThisSession ? counterBase : `${counterBase}/up`);
+    const response = await fetch(countedThisSession ? counterBase : `${counterBase}up/`);
     if (!response.ok) throw new Error("Counter unavailable");
     const data = await response.json();
     visitorCountValue.textContent = Number(data.count).toLocaleString();
