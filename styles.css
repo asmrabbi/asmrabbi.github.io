@@ -2746,6 +2746,18 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
   .academic-experience-list > li {
     display: block;
   }
+
+  .profile-orbit {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+  }
+
+  #keyword-network {
+    width: 720px;
+    min-width: 720px;
+    max-height: none;
+  }
 }
 
 @media (max-width: 480px) {

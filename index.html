@@ -487,6 +487,8 @@
       min-height: 0;
     }
 
+    #profile-network-linked-breadcrumb .connections-map-scroller { min-width: 0; }
+
     #profile-network-linked-breadcrumb .connection-edge {
       fill: none;
       stroke: var(--border);
@@ -609,26 +611,41 @@
     }
 
     @media (max-width: 900px) {
-      #profile-network-linked-breadcrumb .graph-header { grid-template-columns: 1fr; }
-      #profile-network-linked-breadcrumb .graph-stage { min-height: 820px; }
-      #profile-network-linked-breadcrumb .portrait-node { top: 29%; left: 50%; width: 118px; height: 118px; }
-      #profile-network-linked-breadcrumb .portrait-caption { top: calc(29% + 68px); left: 50%; }
+      body { padding: 10px; }
+      #profile-network-linked-breadcrumb .graph-header { grid-template-columns: 1fr; gap: 7px; }
+      #profile-network-linked-breadcrumb .graph-header h1 { font-size: clamp(1.45rem, 7vw, 2rem); }
+      #profile-network-linked-breadcrumb .profile-focus { font-size: var(--font-size-small); }
+      #profile-network-linked-breadcrumb .graph-stage { min-height: 940px; }
+      #profile-network-linked-breadcrumb .portrait-node { top: 25%; left: 50%; width: 110px; height: 110px; }
+      #profile-network-linked-breadcrumb .portrait-caption { top: calc(25% + 64px); left: 50%; }
       #profile-network-linked-breadcrumb .main-node[data-pos="n"] { top: 3%; left: 50%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="ne"] { top: 10%; left: 80%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="e"] { top: 28%; left: 88%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="se"] { top: 46%; left: 80%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="s"] { top: 52%; left: 50%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="sw"] { top: 46%; left: 20%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="w"] { top: 28%; left: 12%; }
-      #profile-network-linked-breadcrumb .main-node[data-pos="nw"] { top: 10%; left: 20%; }
-      #profile-network-linked-breadcrumb .detail-zone { top: 57%; right: 0; bottom: 0; left: 0; width: 100%; padding: 14px 0 0; border-top: 1px solid var(--foreground); border-left: 0; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="ne"] { top: 10%; left: 72%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="e"] { top: 25%; left: 80%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="se"] { top: 41%; left: 74%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="s"] { top: 49%; left: 50%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="sw"] { top: 41%; left: 26%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="w"] { top: 25%; left: 20%; }
+      #profile-network-linked-breadcrumb .main-node[data-pos="nw"] { top: 10%; left: 28%; }
+      #profile-network-linked-breadcrumb .detail-zone { top: 54%; right: 0; bottom: 0; left: 0; width: 100%; padding: 14px 2px 8px; border-top: 1px solid var(--foreground); border-left: 0; overflow-y: auto; overscroll-behavior: contain; }
       #profile-network-linked-breadcrumb .detail-edge { display: none; }
-      #profile-network-linked-breadcrumb .connections-view { top: 57%; right: 0; bottom: 0; left: 0; width: 100%; min-height: 0; padding: 10px 0 0; border-top: 1px solid var(--foreground); border-left: 0; overflow-y: auto; }
-      #profile-network-linked-breadcrumb .connections-map { height: auto; }
+      #profile-network-linked-breadcrumb .connections-view { top: 54%; right: 0; bottom: 0; left: 0; width: 100%; min-height: 0; padding: 10px 2px 8px; border-top: 1px solid var(--foreground); border-left: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+      #profile-network-linked-breadcrumb .connections-map-scroller { overflow-x: auto; overscroll-behavior-inline: contain; padding-bottom: 4px; }
+      #profile-network-linked-breadcrumb .connections-map { width: 760px; max-width: none; height: auto; }
       #profile-network-linked-breadcrumb .reflection-prose { column-count: 1; }
+      #profile-network-linked-breadcrumb .graph-footer { flex-wrap: wrap; gap: 6px 14px; }
     }
 
-    @media (min-width: 760px) and (min-height: 760px) {
+    @media (max-width: 480px) {
+      .landing-toolbar { justify-content: stretch; }
+      .landing-toolbar .btn { flex: 1 1 auto; min-height: 34px; padding-inline: 6px; font-size: 11px; }
+      #profile-network-linked-breadcrumb .main-node { min-height: 27px; padding: 3px 6px; font-size: 11px; }
+      #profile-network-linked-breadcrumb .node-mark { width: 6px; height: 6px; margin-right: 4px; }
+      #profile-network-linked-breadcrumb .child-node { text-align: left; white-space: normal; }
+      #profile-network-linked-breadcrumb .detail-zone h2 { font-size: 1.25rem; }
+      #profile-network-linked-breadcrumb .footer-contact { margin-left: 0; }
+    }
+
+    @media (min-width: 901px) and (min-height: 760px) {
       #profile-network-linked-breadcrumb .graph-stage { min-height: 0; }
     }
   </style>
@@ -691,10 +708,12 @@
 
       <section class="research-panel-section" aria-labelledby="connections-heading">
         <h2 class="connections-heading" id="connections-heading">Research Matrix</h2>
-        <svg class="connections-map" id="connections-map" viewBox="0 0 900 430" role="group" aria-labelledby="connections-map-title connections-map-description">
-          <title id="connections-map-title">Interactive matrix of research topics and outputs</title>
-          <desc id="connections-map-description">Research topics appear on the left and connected publications or project outputs appear on the right.</desc>
-        </svg>
+        <div class="connections-map-scroller">
+          <svg class="connections-map" id="connections-map" viewBox="0 0 900 430" role="group" aria-labelledby="connections-map-title connections-map-description">
+            <title id="connections-map-title">Interactive matrix of research topics and outputs</title>
+            <desc id="connections-map-description">Research topics appear on the left and connected publications or project outputs appear on the right.</desc>
+          </svg>
+        </div>
         <p class="connections-status text-small" id="connections-status">[Hover or focus a topic or output; click to keep its connections visible.]</p>
         <div class="connections-actions">
           <button class="btn" type="button" id="connections-show-all">SHOW ALL CONNECTIONS</button>
@@ -760,6 +779,30 @@
         research: [230, 61], publications: [370, 122], projects: [420, 280], teaching: [370, 439],
         experience: [230, 525], education: [100, 439], activities: [70, 280], reflection: [100, 122]
       };
+
+      const desktopEdgeOrigins = { ...edgeOrigins };
+      const mobileEdgeOrigins = {
+        research: [500, 18], publications: [720, 61], projects: [800, 153], teaching: [740, 250],
+        experience: [500, 299], education: [260, 250], activities: [200, 153], reflection: [280, 61]
+      };
+
+      function syncGraphGeometry() {
+        const mobile = window.matchMedia("(max-width: 900px)").matches;
+        const origins = mobile ? mobileEdgeOrigins : desktopEdgeOrigins;
+        const portrait = mobile ? [500, 153] : [230, 293];
+        Object.assign(edgeOrigins, origins);
+        edges.forEach((edge) => {
+          const destination = origins[edge.dataset.edge];
+          if (!destination) return;
+          edge.setAttribute("x1", portrait[0]);
+          edge.setAttribute("y1", portrait[1]);
+          edge.setAttribute("x2", destination[0]);
+          edge.setAttribute("y2", destination[1]);
+        });
+      }
+
+      syncGraphGeometry();
+      window.addEventListener("resize", syncGraphGeometry);
 
       const leaf = (title, meta, body, tags = "", links = [], authorHtml = "") => ({ title, meta, body, tags, links, authorHtml });
 
