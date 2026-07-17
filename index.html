@@ -732,24 +732,22 @@
       #profile-network-linked-breadcrumb .detail-edge { display: none; }
       #profile-network-linked-breadcrumb .connections-view { top: 54%; right: 0; bottom: 0; left: 0; width: 100%; min-height: 0; padding: 10px 2px 8px; border-top: 1px solid var(--foreground); border-left: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
       #profile-network-linked-breadcrumb .connections-map-scroller {
-        overflow-x: auto;
+        overflow-x: hidden;
         overflow-y: hidden;
         overscroll-behavior-inline: contain;
-        padding-bottom: 5px;
-        scrollbar-color: var(--border) transparent;
-        scrollbar-width: thin;
-        touch-action: pan-x;
-        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        padding-bottom: 2px;
+        touch-action: pan-y;
       }
       #profile-network-linked-breadcrumb .connections-map {
-        width: min(640px, 145vw);
-        max-width: none;
+        width: 100%;
+        max-width: 100%;
         height: auto;
-        aspect-ratio: 700 / 405;
-        touch-action: pan-x;
+        aspect-ratio: 390 / 405;
+        touch-action: pan-y;
       }
-      #profile-network-linked-breadcrumb .connection-node text { font-size: 14.5px; }
-      #profile-network-linked-breadcrumb .connection-column-label { font-size: 12.5px; }
+      #profile-network-linked-breadcrumb .connection-node text { font-size: 10.5px; }
+      #profile-network-linked-breadcrumb .connection-column-label { font-size: 9.5px; }
       #profile-network-linked-breadcrumb .reflection-prose { column-count: 1; }
       #profile-network-linked-breadcrumb .graph-footer { flex-wrap: wrap; gap: 6px 14px; }
       .site-go-top { display: grid; }
@@ -1268,9 +1266,9 @@
           topicLabelX: 20, outputLabelX: 530
         },
         mobile: {
-          viewBox: "0 0 700 405", topicX: 12, topicWidth: 245, outputX: 382, outputWidth: 305,
-          firstCurveX: 298, secondCurveX: 342, rowStart: 28, rowGap: 37, nodeHeight: 28,
-          topicLabelX: 12, outputLabelX: 382
+          viewBox: "0 0 390 405", topicX: 4, topicWidth: 160, outputX: 225, outputWidth: 161,
+          firstCurveX: 184, secondCurveX: 205, rowStart: 27, rowGap: 39, nodeHeight: 32,
+          topicLabelX: 4, outputLabelX: 225
         }
       };
 
@@ -1322,6 +1320,41 @@
         connectionsMap.append(link);
       }
 
+      function splitConnectionLabel(value, maxCharacters) {
+        const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+        const lines = [];
+        words.forEach((word) => {
+          const current = lines[lines.length - 1];
+          if (!current || `${current} ${word}`.length > maxCharacters) lines.push(word);
+          else lines[lines.length - 1] = `${current} ${word}`;
+        });
+        if (lines.length <= 2) return lines;
+        return [lines[0], lines.slice(1).join(" ")];
+      }
+
+      function syncConnectionLabel(label, item, isTopic, layout, y) {
+        const x = (isTopic ? layout.topicX : layout.outputX) + (isTopic ? 7 : 8);
+        const text = item?.shortLabel || item?.label || "";
+        label.replaceChildren();
+        label.setAttribute("x", x);
+
+        if (layout !== researchMatrixLayouts.mobile) {
+          label.setAttribute("y", y + layout.nodeHeight / 2 + 5);
+          label.textContent = text;
+          return;
+        }
+
+        const lines = splitConnectionLabel(text, isTopic ? 22 : 23);
+        const lineHeight = 11.5;
+        const firstBaseline = y + layout.nodeHeight / 2 + 3.5 - ((lines.length - 1) * lineHeight) / 2;
+        label.setAttribute("y", firstBaseline);
+        lines.forEach((line, lineIndex) => {
+          const span = makeConnectionSvg("tspan", { x, dy: lineIndex ? lineHeight : 0 });
+          span.textContent = line;
+          label.append(span);
+        });
+      }
+
       function syncResearchMatrixGeometry() {
         const layout = researchMatrixLayout();
         connectionsMap.setAttribute("viewBox", layout.viewBox);
@@ -1337,12 +1370,12 @@
           const y = connectionNodeY(index, layout);
           const rect = node.querySelector("rect");
           const label = node.querySelector("text");
+          const item = isTopic ? researchTopicById[node.dataset.connectionId] : researchOutputById[node.dataset.connectionId];
           rect?.setAttribute("x", x);
           rect?.setAttribute("y", y);
           rect?.setAttribute("width", width);
           rect?.setAttribute("height", layout.nodeHeight);
-          label?.setAttribute("x", x + (isTopic ? 8 : 9));
-          label?.setAttribute("y", y + layout.nodeHeight / 2 + 5);
+          if (label) syncConnectionLabel(label, item, isTopic, layout, y);
         });
 
         connectionsMap.querySelectorAll(".connection-edge").forEach((edge) => {
