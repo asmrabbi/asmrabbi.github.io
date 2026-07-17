@@ -52,6 +52,10 @@ content:
             type: text
             list:
               min: 1
+          - name: keywords
+            label: Keywords
+            type: string
+            list: true
           - name: more_label
             label: Future page button
             type: string
@@ -130,3 +134,242 @@ content:
             label: Short invitation
             type: text
             required: true
+      - name: profile
+        label: Shared profile catalogue
+        type: object
+        fields:
+          - name: research
+            label: Research, publications and matrix
+            type: object
+            fields:
+              - name: group
+                label: AAU research group
+                type: object
+                fields:
+                  - { name: title, label: Title, type: string, required: true }
+                  - { name: meta, label: Affiliation, type: string }
+                  - name: paragraphs
+                    label: Detailed description
+                    type: text
+                    list: true
+                  - name: compact_paragraphs
+                    label: Short description for compact view
+                    type: text
+                    list: true
+                  - name: keywords
+                    label: Keywords
+                    type: string
+                    list: true
+                  - name: links
+                    label: Links
+                    type: object
+                    list:
+                      collapsible: { collapsed: true, summary: "{label}" }
+                    fields:
+                      - { name: label, label: Label, type: string, required: true }
+                      - { name: url, label: URL, type: string, required: true }
+              - name: topics
+                label: Research topics
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Detailed title, type: string, required: true }
+                  - { name: compact_title, label: Compact title (optional), type: string }
+                  - { name: body, label: Description, type: text, required: true }
+                  - name: keywords
+                    label: Keywords
+                    type: string
+                    list: true
+              - name: outputs
+                label: Publications, outputs and ongoing work
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{year} — {title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Detailed title, type: string, required: true }
+                  - { name: compact_title, label: Compact title (optional), type: string }
+                  - { name: matrix_title, label: Matrix title, type: string }
+                  - { name: year, label: Year, type: string }
+                  - { name: meta, label: Citation/status line, type: string }
+                  - { name: compact_meta, label: Compact status line (optional), type: string }
+                  - { name: authors, label: Authors, type: string }
+                  - { name: venue, label: Venue, type: string }
+                  - { name: body, label: Detailed description, type: text, required: true }
+                  - { name: compact_body, label: Compact description (optional), type: text }
+                  - name: keywords
+                    label: Keywords
+                    type: string
+                    list: true
+                  - name: links
+                    label: Links
+                    type: object
+                    list:
+                      collapsible: { collapsed: true, summary: "{label}" }
+                    fields:
+                      - { name: label, label: Label, type: string, required: true }
+                      - { name: url, label: URL, type: string, required: true }
+                  - { name: publication, label: Show in publications, type: boolean }
+                  - { name: ongoing, label: Ongoing work, type: boolean }
+                  - { name: matrix, label: Show in research matrix, type: boolean }
+              - name: connections
+                label: Research-matrix connections
+                type: object
+                fields:
+                  - { name: ethics, label: AI ethics output IDs, type: string, list: true }
+                  - { name: hci, label: HCI output IDs, type: string, list: true }
+                  - { name: requirements, label: Requirements output IDs, type: string, list: true }
+                  - { name: responsible, label: Responsible AI output IDs, type: string, list: true }
+                  - { name: participatory, label: Participatory/VSD output IDs, type: string, list: true }
+                  - { name: sociotechnical, label: Socio-technical output IDs, type: string, list: true }
+                  - { name: ai4se, label: AI4SE output IDs, type: string, list: true }
+                  - { name: public, label: Public digitalisation output IDs, type: string, list: true }
+                  - { name: data, label: Data governance output IDs, type: string, list: true }
+          - name: projects
+            label: Projects
+            type: object
+            fields:
+              - name: academic
+                label: Academic projects
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Title, type: string, required: true }
+                  - { name: compact_title, label: Compact title (optional), type: string }
+                  - { name: meta, label: Date/context, type: string }
+                  - { name: body, label: Detailed description, type: text }
+                  - { name: compact_body, label: Compact description (optional), type: text }
+                  - { name: keywords, label: Keywords, type: string, list: true }
+                  - name: links
+                    label: Links
+                    type: object
+                    list: true
+                    fields:
+                      - { name: label, label: Label, type: string }
+                      - { name: url, label: URL, type: string }
+                  - name: timeline
+                    label: Role timeline (optional)
+                    type: object
+                    list:
+                      collapsible: { collapsed: true, summary: "{label} — {role}" }
+                    fields:
+                      - { name: label, label: Cycle/stage, type: string }
+                      - { name: role, label: Role, type: string }
+                      - { name: period, label: Period, type: string }
+              - name: professional
+                label: Professional project organisations
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Organisation, type: string, required: true }
+                  - { name: meta, label: Period, type: string }
+                  - { name: body, label: Portfolio overview, type: text }
+                  - name: items
+                    label: Projects
+                    type: object
+                    list:
+                      collapsible: { collapsed: true, summary: "{title}" }
+                    fields:
+                      - { name: id, label: Stable ID, type: string, required: true }
+                      - { name: title, label: Project title, type: string, required: true }
+                      - { name: meta, label: Context, type: string }
+                      - { name: body, label: Detailed description, type: text }
+                      - { name: compact_body, label: Compact description (optional), type: text }
+                      - { name: keywords, label: Keywords, type: string, list: true }
+                      - name: links
+                        label: Links
+                        type: object
+                        list: true
+                        fields:
+                          - { name: label, label: Label, type: string }
+                          - { name: url, label: URL, type: string }
+          - name: teaching
+            label: Teaching
+            type: object
+            list:
+              collapsible: { collapsed: true, summary: "{institution_label} — {title}" }
+            fields:
+              - { name: id, label: Stable ID, type: string, required: true }
+              - { name: institution, label: Institution key (aau/itu/dtu), type: string, required: true }
+              - { name: institution_label, label: Institution label, type: string, required: true }
+              - { name: role, label: Role, type: string }
+              - { name: title, label: Detailed course title, type: string, required: true }
+              - { name: compact_title, label: Compact title (optional), type: string }
+              - { name: semesters, label: Semesters, type: string, list: true }
+              - { name: body, label: Description, type: text }
+              - { name: compact_body, label: Compact description (optional), type: text }
+              - { name: keywords, label: Topics/keywords, type: string, list: true }
+              - name: links
+                label: Course pages
+                type: object
+                list: true
+                fields:
+                  - { name: label, label: Semester/label, type: string }
+                  - { name: url, label: URL, type: string }
+          - name: experience
+            label: Experience
+            type: object
+            fields:
+              - name: academic
+                label: Academic and research
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Role, type: string, required: true }
+                  - { name: compact_title, label: Compact role (optional), type: string }
+                  - { name: meta, label: Period, type: string }
+                  - { name: organisation, label: Organisation, type: string }
+                  - { name: body, label: Detailed description, type: text }
+                  - { name: compact_body, label: Compact description (optional), type: text }
+                  - { name: keywords, label: Keywords, type: string, list: true }
+                  - name: links
+                    label: Links
+                    type: object
+                    list: true
+                    fields:
+                      - { name: label, label: Label, type: string }
+                      - { name: url, label: URL, type: string }
+              - name: professional
+                label: Industry and professional practice
+                type: object
+                list:
+                  collapsible: { collapsed: true, summary: "{title}" }
+                fields:
+                  - { name: id, label: Stable ID, type: string, required: true }
+                  - { name: title, label: Role, type: string, required: true }
+                  - { name: compact_title, label: Compact role (optional), type: string }
+                  - { name: meta, label: Period, type: string }
+                  - { name: organisation, label: Organisation, type: string }
+                  - { name: body, label: Detailed description, type: text }
+                  - { name: compact_body, label: Compact description (optional), type: text }
+                  - { name: keywords, label: Keywords, type: string, list: true }
+                  - name: links
+                    label: Links
+                    type: object
+                    list: true
+                    fields:
+                      - { name: label, label: Label, type: string }
+                      - { name: url, label: URL, type: string }
+          - name: education
+            label: Education and technical practice
+            type: object
+            list:
+              collapsible: { collapsed: true, summary: "{title}" }
+            fields:
+              - { name: id, label: Stable ID, type: string, required: true }
+              - { name: title, label: Detailed title, type: string, required: true }
+              - { name: compact_title, label: Compact title (optional), type: string }
+              - { name: institution, label: Institution/context, type: string }
+              - { name: year, label: Completion year, type: string }
+              - { name: duration, label: Duration, type: string }
+              - { name: credits, label: Credits/ECTS, type: string }
+              - { name: body, label: Detailed description, type: text }
+              - { name: compact_body, label: Compact description (optional), type: text }

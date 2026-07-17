@@ -81,11 +81,292 @@ function renderManagedUpdates(updates) {
   }
 }
 
+function sharedLinks(links = [], className = "") {
+  const line = document.createElement("p");
+  if (className) line.className = className;
+  links.forEach((entry, index) => {
+    if (index) line.append(" · ");
+    const link = document.createElement("a");
+    link.href = entry.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = `${entry.label} →`;
+    line.append(link);
+  });
+  return line;
+}
+
+function sharedTags(keywords = []) {
+  const tags = document.createElement("p");
+  tags.className = "publication-tags";
+  tags.textContent = keywords.join(" · ");
+  return tags;
+}
+
+function appendHighlightedAuthorLine(container, item) {
+  if (!item.authors && !item.venue) return;
+  const line = document.createElement("p");
+  const authors = item.authors || "";
+  const matches = [...authors.matchAll(/L\. R\. Rabbi|Rabbi, Lutfor Rahman/g)];
+  let cursor = 0;
+  matches.forEach((match) => {
+    line.append(authors.slice(cursor, match.index));
+    const strong = document.createElement("strong");
+    strong.textContent = match[0];
+    line.append(strong);
+    cursor = match.index + match[0].length;
+  });
+  line.append(authors.slice(cursor));
+  if (item.venue) line.append(`${authors ? ". " : ""}${item.venue}.`);
+  container.append(line);
+}
+
+function renderSharedPublication(item, extra = false) {
+  const row = document.createElement("li");
+  row.id = `work-${item.id}`;
+  if (extra) {
+    row.dataset.publicationExtra = "";
+    row.hidden = true;
+  }
+  const year = document.createElement("div");
+  year.className = "publication-year";
+  year.textContent = item.year || "—";
+  const content = document.createElement("div");
+  const heading = document.createElement("h3");
+  heading.dataset.profileTerm = `publication-${item.id}`;
+  heading.textContent = item.title;
+  content.append(heading);
+  appendHighlightedAuthorLine(content, item);
+  if (item.body) {
+    const summary = document.createElement("p");
+    summary.textContent = item.body;
+    content.append(summary);
+  }
+  if (item.links?.length) content.append(sharedLinks(item.links));
+  if (item.keywords?.length) content.append(sharedTags(item.keywords));
+  row.append(year, content);
+  return row;
+}
+
+function renderSharedPublications(outputs = []) {
+  const published = outputs.filter((item) => item.publication !== false && !item.ongoing);
+  const primary = document.querySelector("#publications > .publication-list");
+  const secondary = document.querySelector("#more-publication-content .secondary-publications");
+  const workGrid = document.querySelector("#more-publication-content .work-grid");
+  if (!primary || !secondary || !workGrid) return;
+  primary.replaceChildren(...published.slice(0, 5).map((item, index) => renderSharedPublication(item, index >= 3)));
+  secondary.replaceChildren(...published.slice(5).map((item) => renderSharedPublication(item)));
+  const ongoing = outputs.filter((item) => item.ongoing);
+  workGrid.replaceChildren(...ongoing.map((item) => {
+    const article = document.createElement("article");
+    article.id = `work-${item.id}`;
+    const status = document.createElement("p");
+    status.className = "status-label";
+    status.textContent = item.meta || "Ongoing work";
+    const heading = document.createElement("h3");
+    heading.dataset.profileTerm = `publication-${item.id}`;
+    heading.textContent = item.title;
+    const body = document.createElement("p");
+    body.textContent = item.body || "";
+    article.append(status, heading, body);
+    if (item.keywords?.length) article.append(sharedTags(item.keywords));
+    if (item.links?.length) article.append(sharedLinks(item.links));
+    return article;
+  }));
+  setPublicationsExpanded(false);
+}
+
+function renderSharedProjects(projects = {}) {
+  const academic = projects.academic || [];
+  const featured = document.querySelector("#academic-projects .featured-project");
+  const more = document.querySelector("#more-academic-projects");
+  const professional = document.querySelector("#professional-projects .professional-project-list");
+  if (featured && academic[0]) {
+    const item = academic[0];
+    const content = document.createElement("div");
+    content.className = "featured-project-text";
+    const meta = document.createElement("p"); meta.className = "status-label"; meta.textContent = item.meta || "";
+    const heading = document.createElement("h3"); heading.dataset.profileTerm = item.id; heading.textContent = item.title;
+    const body = document.createElement("p"); body.textContent = item.body || "";
+    content.append(meta, heading, body);
+    if (item.timeline?.length) {
+      const timeline = document.createElement("ol"); timeline.className = "cycle-timeline"; timeline.setAttribute("aria-label", `${item.title} roles by cycle`);
+      item.timeline.forEach((stage) => {
+        const li = document.createElement("li");
+        const label = document.createElement("span"); label.textContent = stage.label;
+        const role = document.createElement("strong"); role.textContent = stage.role;
+        const time = document.createElement("time"); time.textContent = stage.period;
+        li.append(label, role, time); timeline.append(li);
+      });
+      content.append(timeline);
+    }
+    if (item.keywords?.length) content.append(sharedTags(item.keywords));
+    if (item.links?.length) content.append(sharedLinks(item.links));
+    featured.replaceChildren(content);
+  }
+  if (more) {
+    const list = document.createElement("div"); list.className = "project-list single-project";
+    academic.slice(1).forEach((item) => {
+      const article = document.createElement("article");
+      const meta = document.createElement("p"); meta.className = "status-label"; meta.textContent = item.meta || "";
+      const heading = document.createElement("h3"); heading.dataset.profileTerm = item.id; heading.textContent = item.title;
+      const body = document.createElement("p"); body.textContent = item.body || "";
+      article.append(meta, heading, body);
+      if (item.keywords?.length) article.append(sharedTags(item.keywords));
+      if (item.links?.length) article.append(sharedLinks(item.links));
+      list.append(article);
+    });
+    more.replaceChildren(list);
+  }
+  if (professional) {
+    professional.replaceChildren(...(projects.professional || []).map((organisation) => {
+      const article = document.createElement("article"); article.className = "professional-portfolio";
+      const meta = document.createElement("p"); meta.className = "status-label"; meta.textContent = `${organisation.title}${organisation.meta ? ` · ${organisation.meta}` : ""}`;
+      const heading = document.createElement("h3"); heading.dataset.profileTerm = organisation.id; heading.textContent = organisation.title;
+      const body = document.createElement("p"); body.textContent = organisation.body || "";
+      const portfolio = document.createElement("div"); portfolio.className = "portfolio-projects";
+      (organisation.items || []).forEach((item) => {
+        const section = document.createElement("section");
+        const h4 = document.createElement("h4"); h4.dataset.profileTerm = item.id; h4.textContent = item.title;
+        const itemMeta = document.createElement("p"); itemMeta.className = "status-label"; itemMeta.textContent = item.meta || "";
+        const itemBody = document.createElement("p"); itemBody.textContent = item.body || "";
+        section.append(h4, itemMeta, itemBody);
+        if (item.keywords?.length) section.append(sharedTags(item.keywords));
+        portfolio.append(section);
+      });
+      article.append(meta, heading, body, portfolio);
+      return article;
+    }));
+  }
+  setAcademicExpanded(false);
+}
+
+function renderSharedTeaching(items = []) {
+  const grid = document.querySelector("#teaching .course-grid");
+  if (!grid) return;
+  grid.replaceChildren(...items.map((item) => {
+    const article = document.createElement("article"); article.className = "course"; article.dataset.institution = item.institution;
+    const meta = document.createElement("p"); meta.className = "course-meta"; meta.textContent = `${item.institution_label || item.institution.toUpperCase()} · ${item.role || ""}`;
+    const heading = document.createElement("h3"); heading.dataset.profileTerm = `course-${item.id}`;
+    const headingLink = document.createElement("a"); headingLink.href = item.links?.[0]?.url || "#"; headingLink.target = "_blank"; headingLink.rel = "noopener noreferrer"; headingLink.textContent = `${item.title} →`; heading.append(headingLink);
+    const semesters = document.createElement("p"); semesters.className = "course-semesters";
+    const semesterLabel = document.createElement("strong"); semesterLabel.textContent = item.semesters?.length === 1 ? "Semester" : "Semesters";
+    const semesterText = document.createElement("span"); semesterText.textContent = (item.semesters || []).join(" · "); semesters.append(semesterLabel, semesterText);
+    const links = document.createElement("div"); links.className = `course-links${item.links?.length > 1 ? " course-links-multiple" : ""}`;
+    const linkLabel = document.createElement("strong"); linkLabel.textContent = item.links?.length > 1 ? "Course pages" : "Course page"; links.append(linkLabel);
+    if (item.links?.length > 1) {
+      const ul = document.createElement("ul"); item.links.forEach((entry) => { const li = document.createElement("li"); const a = document.createElement("a"); a.href = entry.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = `${entry.label} ↗`; li.append(a); ul.append(li); }); links.append(ul);
+    } else if (item.links?.[0]) { const a = document.createElement("a"); a.href = item.links[0].url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = `${item.links[0].label} ↗`; links.append(a); }
+    const body = document.createElement("p"); body.textContent = item.body || "";
+    const keywords = document.createElement("ul"); keywords.className = "keyword-list"; (item.keywords || []).forEach((keyword) => { const li = document.createElement("li"); li.textContent = keyword; keywords.append(li); });
+    article.append(meta, heading, semesters, links, body, keywords);
+    return article;
+  }));
+  courses = [...grid.querySelectorAll("[data-institution]")];
+  coursesExpanded = false;
+  renderCourses();
+}
+
+function renderSharedExperience(experience = {}) {
+  [["academic", "#academic-experience .experience-list"], ["professional", "#professional-experience .experience-list"]].forEach(([type, selector]) => {
+    const list = document.querySelector(selector);
+    if (!list) return;
+    list.replaceChildren(...(experience[type] || []).map((item, index) => {
+      const row = document.createElement("li");
+      if (type === "professional" && index >= 3) { row.dataset.experienceExtra = type; row.hidden = true; }
+      const date = document.createElement("p"); date.className = "experience-date"; date.textContent = item.meta || "";
+      const heading = document.createElement("h3"); heading.dataset.profileTerm = item.id; heading.textContent = item.title;
+      const org = document.createElement("p"); org.className = "experience-org"; org.textContent = item.organisation || "";
+      const body = document.createElement("p"); body.textContent = item.body || "";
+      row.append(date, heading, org, body);
+      if (item.keywords?.length) row.append(sharedTags(item.keywords));
+      if (item.links?.length) row.append(sharedLinks(item.links));
+      return row;
+    }));
+  });
+  setExperienceExpanded("professional", false);
+}
+
+function renderSharedEducation(items = []) {
+  const grid = document.querySelector("#background .background-grid");
+  if (!grid) return;
+  grid.replaceChildren(...items.map((item) => {
+    const card = document.createElement("div");
+    const heading = document.createElement("h3"); heading.dataset.profileTerm = `education-${item.id}`; heading.textContent = item.title;
+    const meta = document.createElement("p"); meta.className = "degree-meta"; meta.textContent = [item.duration, item.credits].filter(Boolean).join(" · ");
+    const list = document.createElement("ul"); list.className = "plain-list";
+    const row = document.createElement("li"); const institution = document.createElement("strong"); institution.textContent = `${item.institution}${item.year ? `, ${item.year}` : ""}. `; row.append(institution, item.body || ""); list.append(row);
+    card.append(heading, meta, list); return card;
+  }));
+}
+
+function buildSharedOrbitTopics(profile) {
+  const leaf = (item, term) => ({ label: item.compact_title || item.title, term });
+  const publications = (profile.research?.outputs || []).filter((item) => item.publication !== false).map((item) => leaf(item, `publication-${item.id}`));
+  const academicProjects = (profile.projects?.academic || []).map((item) => ({ ...leaf(item, item.id), children: (item.keywords || []).map((keyword) => ({ label: keyword, term: item.id })) }));
+  const professionalProjects = (profile.projects?.professional || []).map((organisation) => ({ label: organisation.title, term: organisation.id, children: (organisation.items || []).map((item) => leaf(item, item.id)) }));
+  const teachingGroups = Object.values((profile.teaching || []).reduce((groups, item) => {
+    const id = item.institution;
+    groups[id] ||= { label: item.institution_label || id.toUpperCase(), children: [] };
+    groups[id].children.push(leaf(item, `course-${item.id}`));
+    return groups;
+  }, {}));
+  return {
+    research: (profile.research?.topics || []).map((item) => leaf(item, `research-${item.id}`)),
+    publications,
+    projects: [{ label: "Academic", children: academicProjects }, { label: "Professional", children: professionalProjects }],
+    teaching: teachingGroups,
+    experience: [
+      { label: "Academic & research", children: (profile.experience?.academic || []).map((item) => leaf(item, item.id)) },
+      { label: "Industry & practice", children: (profile.experience?.professional || []).map((item) => leaf(item, item.id)) }
+    ],
+    education: (profile.education || []).map((item) => leaf(item, `education-${item.id}`))
+  };
+}
+
+function applySharedProfile(profile) {
+  const research = profile.research || {};
+  if (research.topics?.length) {
+    const tabs = document.querySelector("#research .domain-tabs");
+    tabs?.replaceChildren(...research.topics.map((item, index) => {
+      const button = document.createElement("button");
+      button.className = `domain-tab${index === 0 ? " active" : ""}`;
+      button.id = `domain-${item.id}`;
+      button.dataset.profileTerm = `research-${item.id}`;
+      button.dataset.domainTitle = item.title;
+      button.dataset.domainCopy = item.body || "";
+      button.type = "button"; button.role = "tab"; button.setAttribute("aria-selected", String(index === 0)); button.setAttribute("aria-controls", "domain-detail"); button.textContent = item.title;
+      return button;
+    }));
+    domainTabs = [...document.querySelectorAll(".domain-tab")];
+    selectedDomain = domainTabs[0];
+    bindDomainTabs();
+    showDomain(selectedDomain, true);
+  }
+  if (research.group) {
+    const box = document.querySelector("#retech .retech-box");
+    const heading = box?.querySelector("h2"); const affiliation = box?.querySelector(".affiliation"); const prose = box?.querySelector(".prose");
+    if (heading) heading.textContent = research.group.title;
+    if (affiliation) affiliation.textContent = research.group.meta || "";
+    if (prose) {
+      const paragraphs = (research.group.paragraphs || []).map((text) => { const p = document.createElement("p"); p.textContent = text; return p; });
+      if (research.group.links?.length) paragraphs.push(sharedLinks(research.group.links, "link-row"));
+      prose.replaceChildren(...paragraphs);
+    }
+  }
+  if (research.topics && research.outputs && research.connections) rebuildResearchNetwork(research);
+  renderSharedPublications(research.outputs || []);
+  renderSharedProjects(profile.projects || {});
+  renderSharedTeaching(profile.teaching || []);
+  renderSharedExperience(profile.experience || {});
+  renderSharedEducation(profile.education || []);
+  Object.assign(orbitTopics, buildSharedOrbitTopics(profile));
+}
+
 async function loadManagedContent() {
   try {
-    const response = await fetch("content/site-content.json", { cache: "no-store" });
-    if (!response.ok) throw new Error("Managed content unavailable");
-    const content = await response.json();
+    const content = await (window.ProfileContent?.ready || Promise.resolve(null));
+    if (!content) throw new Error("Managed content unavailable");
 
     const managedText = [
       ["[data-cms='hero-kicker']", content.hero?.kicker],
@@ -126,6 +407,7 @@ async function loadManagedContent() {
     }
 
     renderManagedUpdates(content.updates);
+    if (content.profile) applySharedProfile(content.profile);
   } catch {
     // The embedded HTML remains a complete fallback for file previews and offline use.
   }
@@ -213,7 +495,7 @@ introSteps.forEach((step) => {
   step.addEventListener("click", () => showIntroStage(step));
 });
 
-const domainTabs = [...document.querySelectorAll(".domain-tab")];
+let domainTabs = [...document.querySelectorAll(".domain-tab")];
 const domainDetail = document.querySelector("#domain-detail");
 let selectedDomain = domainTabs[0];
 
@@ -229,16 +511,20 @@ function showDomain(tab, commit = false) {
   domainDetail.querySelector("p").textContent = tab.dataset.domainCopy;
 }
 
-domainTabs.forEach((tab) => {
-  tab.addEventListener("pointerenter", () => showDomain(tab));
-  tab.addEventListener("pointerleave", () => showDomain(selectedDomain, true));
-  tab.addEventListener("focus", () => showDomain(tab));
-  tab.addEventListener("blur", () => showDomain(selectedDomain, true));
-  tab.addEventListener("click", () => showDomain(tab, true));
-});
+function bindDomainTabs() {
+  domainTabs.forEach((tab) => {
+    tab.addEventListener("pointerenter", () => showDomain(tab));
+    tab.addEventListener("pointerleave", () => showDomain(selectedDomain, true));
+    tab.addEventListener("focus", () => showDomain(tab));
+    tab.addEventListener("blur", () => showDomain(selectedDomain, true));
+    tab.addEventListener("click", () => showDomain(tab, true));
+  });
+}
+
+bindDomainTabs();
 
 const courseButtons = [...document.querySelectorAll("[data-course-filter]")];
-const courses = [...document.querySelectorAll("[data-institution]")];
+let courses = [...document.querySelectorAll("[data-institution]")];
 const courseStatus = document.querySelector("#course-filter-status");
 const toggleCoursesButton = document.querySelector("#toggle-courses");
 let activeCourseFilter = "all";
@@ -288,7 +574,7 @@ const network = document.querySelector("#research-network");
 const mapStatus = document.querySelector("#map-status");
 const resetMapButton = document.querySelector("#reset-map");
 
-const topics = [
+let topics = [
   { id: "ethics", label: "AI Ethics & Techno-Ethics" },
   { id: "hci", label: "Human-Computer Interaction" },
   { id: "requirements", label: "Requirements Engineering" },
@@ -300,7 +586,7 @@ const topics = [
   { id: "data", label: "Data Governance" }
 ];
 
-const works = [
+let works = [
   { id: "justice", label: "Designing for Justice (2026)" },
   { id: "informant", label: "AI Informants (2026)" },
   { id: "alignment", label: "Value Alignment Analyser" },
@@ -313,7 +599,7 @@ const works = [
   { id: "surveillance", label: "Interpersonal Surveillance (2024)" }
 ];
 
-const connections = {
+let connections = {
   ethics: ["justice", "informant", "alignment", "paradigm", "citizen-science", "clones", "thesis", "surveillance"],
   hci: ["justice", "informant", "alignment", "thesis", "surveillance"],
   requirements: ["justice", "informant", "alignment", "paradigm", "thesis", "ecoclareza"],
@@ -325,8 +611,8 @@ const connections = {
   data: ["citizen-science", "mobilizer", "clones", "thesis", "ecoclareza"]
 };
 
-const topicById = Object.fromEntries(topics.map((topic) => [topic.id, topic]));
-const workById = Object.fromEntries(works.map((work) => [work.id, work]));
+let topicById = Object.fromEntries(topics.map((topic) => [topic.id, topic]));
+let workById = Object.fromEntries(works.map((work) => [work.id, work]));
 let selectedNode = null;
 let showAllMode = false;
 
@@ -384,14 +670,27 @@ function addNetworkNode(item, index, type) {
   network.appendChild(group);
 }
 
-topics.forEach((topic, topicIndex) => {
-  connections[topic.id].forEach((workId) => {
-    const workIndex = works.findIndex((work) => work.id === workId);
-    addNetworkEdge(topic, topicIndex, works[workIndex], workIndex);
+function rebuildResearchNetwork(research = null) {
+  if (research) {
+    topics = research.topics.map((item) => ({ id: item.id, label: item.compact_title || item.title, detail: item.body || "" }));
+    works = research.outputs
+      .filter((item) => item.matrix !== false)
+      .map((item) => ({ id: item.id, label: item.matrix_title || item.compact_title || item.title, detail: item.compact_body || item.body || "" }));
+    connections = research.connections;
+    topicById = Object.fromEntries(topics.map((topic) => [topic.id, topic]));
+    workById = Object.fromEntries(works.map((work) => [work.id, work]));
+  }
+  network.querySelectorAll(".network-edge, .network-node").forEach((element) => element.remove());
+  topics.forEach((topic, topicIndex) => {
+    (connections[topic.id] || []).forEach((workId) => {
+      const workIndex = works.findIndex((work) => work.id === workId);
+      if (workIndex >= 0) addNetworkEdge(topic, topicIndex, works[workIndex], workIndex);
+    });
   });
-});
-topics.forEach((topic, index) => addNetworkNode(topic, index, "topic"));
-works.forEach((work, index) => addNetworkNode(work, index, "work"));
+  topics.forEach((topic, index) => addNetworkNode(topic, index, "topic"));
+  works.forEach((work, index) => addNetworkNode(work, index, "work"));
+  setNetworkIdle();
+}
 
 function clearNetworkPresentation() {
   network.classList.remove("has-selection", "is-idle", "show-all");
@@ -472,7 +771,7 @@ function restoreNetworkSelection() {
 }
 
 resetMapButton.addEventListener("click", showAllNetwork);
-setNetworkIdle();
+rebuildResearchNetwork();
 
 const keywordNetwork = document.querySelector("#keyword-network");
 const keywordDetail = document.querySelector("#keyword-network-detail");

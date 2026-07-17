@@ -8,7 +8,7 @@ After the website repository is published on GitHub:
 2. Sign in with the GitHub account that owns the website repository.
 3. Install or authorize the Pages CMS GitHub App for that repository when first prompted.
 4. Open **Website content**.
-5. Edit the homepage introduction, the single **Now** feature, Life Reflection, recent activity, or contact invitation.
+5. Edit the homepage introduction, the single **Now** feature, Life Reflection, recent activity, or anything in the **Shared profile catalogue**.
 6. Save. Pages CMS writes the change to GitHub and the published site updates through the normal deployment.
 
 The order of **Recent activity** items in the editor is the order used on the website. The first three are shown initially; the rest appear under **Show all updates**. Turn off **Show on website** to keep an item in the editor without displaying it.
@@ -18,3 +18,11 @@ The **Now** feature is deliberately limited to one current announcement. Replace
 The LinkedIn share button also creates a ready-to-paste post from the first sentence of the **Now** message, its deadline, and the current website link. No separate social-post text needs to be maintained.
 
 The Life Reflection month and year do not need to be edited. The website calculates them from the visitor's current date.
+
+## One edit, both website views
+
+The detailed profile and the compact network now read from the same catalogue. Add a publication, ongoing study, project, course, role, degree, or research topic once under **Shared profile catalogue**; it will appear in the corresponding section of both views. The same entry also becomes part of the detailed Explore navigator. Research topics, outputs, and their output-ID connections drive both research matrices.
+
+Use **Detailed title/description** for the full profile. The optional **Compact title/description** is only needed when the network view should use shorter wording. If a compact field is empty, the compact view automatically uses the detailed wording.
+
+Keep each **Stable ID** short and unchanged after publishing—for example `value-alignment`, `aau-scripting`, or `axis-osint`. Matrix connections use these IDs. When a new research output should appear in the matrix, add its ID to the relevant topic lists under **Research-matrix connections**.

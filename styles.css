@@ -221,6 +221,29 @@ select {
   font-weight: 700;
 }
 
+.view-mode-link {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--strong-border);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.view-mode-link:hover,
+.view-mode-link:focus-visible {
+  border-color: var(--link);
+  background: var(--accent-soft);
+  color: var(--link-hover);
+}
+
 .theme-toggle:hover,
 .theme-toggle:focus-visible {
   border-color: var(--link);
@@ -232,6 +255,16 @@ select {
   width: 17px;
   height: 17px;
   flex: 0 0 17px;
+}
+
+@media (max-width: 1300px) and (min-width: 901px) {
+  .header-row { gap: 18px; }
+  .view-mode-link {
+    width: 38px;
+    justify-content: center;
+    padding-inline: 6px;
+  }
+  .view-mode-link span:last-child { display: none; }
 }
 
 .hero {
@@ -2493,6 +2526,16 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
   .theme-toggle span {
     display: none;
   }
+
+  .view-mode-link {
+    width: 38px;
+    justify-content: center;
+    padding-inline: 6px;
+  }
+
+  .view-mode-link span:last-child {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2506,7 +2549,10 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
 
   .header-row {
     min-height: 62px;
+    gap: 8px;
   }
+
+  .site-name small { display: none; }
 
   .menu-button {
     display: block;
@@ -2515,6 +2561,19 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
 
   .theme-toggle {
     margin-left: auto;
+  }
+
+  .view-mode-link {
+    order: 2;
+  }
+
+  .theme-toggle {
+    order: 3;
+    margin-left: 0;
+  }
+
+  .menu-button {
+    order: 4;
   }
 
   .main-nav {
@@ -2698,6 +2757,16 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
     width: 38px;
     justify-content: center;
     padding-inline: 6px;
+  }
+
+  .view-mode-link {
+    width: 38px;
+    justify-content: center;
+    padding-inline: 6px;
+  }
+
+  .view-mode-link span:last-child {
+    display: none;
   }
 
   .life-reflection {
