@@ -731,8 +731,25 @@
       #profile-network-linked-breadcrumb .detail-zone { top: 54%; right: 0; bottom: 0; left: 0; width: 100%; padding: 14px 2px 8px; border-top: 1px solid var(--foreground); border-left: 0; overflow-y: auto; overscroll-behavior: contain; }
       #profile-network-linked-breadcrumb .detail-edge { display: none; }
       #profile-network-linked-breadcrumb .connections-view { top: 54%; right: 0; bottom: 0; left: 0; width: 100%; min-height: 0; padding: 10px 2px 8px; border-top: 1px solid var(--foreground); border-left: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
-      #profile-network-linked-breadcrumb .connections-map-scroller { overflow-x: auto; overscroll-behavior-inline: contain; padding-bottom: 4px; }
-      #profile-network-linked-breadcrumb .connections-map { width: 760px; max-width: none; height: auto; }
+      #profile-network-linked-breadcrumb .connections-map-scroller {
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-inline: contain;
+        padding-bottom: 5px;
+        scrollbar-color: var(--border) transparent;
+        scrollbar-width: thin;
+        touch-action: pan-x;
+        -webkit-overflow-scrolling: touch;
+      }
+      #profile-network-linked-breadcrumb .connections-map {
+        width: min(640px, 145vw);
+        max-width: none;
+        height: auto;
+        aspect-ratio: 700 / 405;
+        touch-action: pan-x;
+      }
+      #profile-network-linked-breadcrumb .connection-node text { font-size: 14.5px; }
+      #profile-network-linked-breadcrumb .connection-column-label { font-size: 12.5px; }
       #profile-network-linked-breadcrumb .reflection-prose { column-count: 1; }
       #profile-network-linked-breadcrumb .graph-footer { flex-wrap: wrap; gap: 6px 14px; }
       .site-go-top { display: grid; }
@@ -1244,12 +1261,30 @@
         return element;
       }
 
-      function connectionNodeY(index) { return 30 + index * 39; }
+      const researchMatrixLayouts = {
+        desktop: {
+          viewBox: "0 0 900 430", topicX: 20, topicWidth: 280, outputX: 530, outputWidth: 350,
+          firstCurveX: 370, secondCurveX: 460, rowStart: 30, rowGap: 39, nodeHeight: 30,
+          topicLabelX: 20, outputLabelX: 530
+        },
+        mobile: {
+          viewBox: "0 0 700 405", topicX: 12, topicWidth: 245, outputX: 382, outputWidth: 305,
+          firstCurveX: 298, secondCurveX: 342, rowStart: 28, rowGap: 37, nodeHeight: 28,
+          topicLabelX: 12, outputLabelX: 382
+        }
+      };
+
+      function researchMatrixLayout() {
+        return window.matchMedia("(max-width: 900px)").matches ? researchMatrixLayouts.mobile : researchMatrixLayouts.desktop;
+      }
+
+      function connectionNodeY(index, layout = researchMatrixLayouts.desktop) { return layout.rowStart + index * layout.rowGap; }
 
       function addConnectionEdge(topic, topicIndex, output, outputIndex) {
+        const layout = researchMatrixLayouts.desktop;
         const edge = makeConnectionSvg("path", {
           class: "connection-edge",
-          d: `M300 ${connectionNodeY(topicIndex) + 15} C370 ${connectionNodeY(topicIndex) + 15}, 460 ${connectionNodeY(outputIndex) + 15}, 530 ${connectionNodeY(outputIndex) + 15}`,
+          d: `M${layout.topicX + layout.topicWidth} ${connectionNodeY(topicIndex, layout) + layout.nodeHeight / 2} C${layout.firstCurveX} ${connectionNodeY(topicIndex, layout) + layout.nodeHeight / 2}, ${layout.secondCurveX} ${connectionNodeY(outputIndex, layout) + layout.nodeHeight / 2}, ${layout.outputX} ${connectionNodeY(outputIndex, layout) + layout.nodeHeight / 2}`,
           "data-connection-topic": topic.id,
           "data-connection-output": output.id,
           "aria-hidden": "true"
@@ -1258,19 +1293,21 @@
       }
 
       function addConnectionNode(item, index, type) {
+        const layout = researchMatrixLayouts.desktop;
         const isTopic = type === "topic";
-        const x = isTopic ? 20 : 530;
-        const width = isTopic ? 280 : 350;
-        const y = connectionNodeY(index);
+        const x = isTopic ? layout.topicX : layout.outputX;
+        const width = isTopic ? layout.topicWidth : layout.outputWidth;
+        const y = connectionNodeY(index, layout);
         const link = makeConnectionSvg("a", {
           class: `connection-node ${type}`,
           href: "#",
           "aria-label": `${isTopic ? "Research topic" : "Research output"}: ${item.label}`,
           "aria-pressed": "false",
           "data-connection-id": item.id,
-          "data-connection-type": type
+          "data-connection-type": type,
+          "data-connection-index": index
         });
-        link.append(makeConnectionSvg("rect", { x, y, width, height: 30, rx: 2 }));
+        link.append(makeConnectionSvg("rect", { x, y, width, height: layout.nodeHeight, rx: 2 }));
         const label = makeConnectionSvg("text", { x: x + 10, y: y + 20 });
         label.textContent = item.shortLabel || item.label;
         link.append(label);
@@ -1283,6 +1320,39 @@
         link.addEventListener("focus", () => previewConnectionSelection(type, item.id));
         link.addEventListener("blur", restoreConnectionSelection);
         connectionsMap.append(link);
+      }
+
+      function syncResearchMatrixGeometry() {
+        const layout = researchMatrixLayout();
+        connectionsMap.setAttribute("viewBox", layout.viewBox);
+        const columnLabels = [...connectionsMap.querySelectorAll(".connection-column-label")];
+        columnLabels[0]?.setAttribute("x", layout.topicLabelX);
+        columnLabels[1]?.setAttribute("x", layout.outputLabelX);
+
+        connectionsMap.querySelectorAll(".connection-node").forEach((node) => {
+          const isTopic = node.dataset.connectionType === "topic";
+          const index = Number(node.dataset.connectionIndex);
+          const x = isTopic ? layout.topicX : layout.outputX;
+          const width = isTopic ? layout.topicWidth : layout.outputWidth;
+          const y = connectionNodeY(index, layout);
+          const rect = node.querySelector("rect");
+          const label = node.querySelector("text");
+          rect?.setAttribute("x", x);
+          rect?.setAttribute("y", y);
+          rect?.setAttribute("width", width);
+          rect?.setAttribute("height", layout.nodeHeight);
+          label?.setAttribute("x", x + (isTopic ? 8 : 9));
+          label?.setAttribute("y", y + layout.nodeHeight / 2 + 5);
+        });
+
+        connectionsMap.querySelectorAll(".connection-edge").forEach((edge) => {
+          const topicIndex = researchTopics.findIndex((item) => item.id === edge.dataset.connectionTopic);
+          const outputIndex = researchOutputs.findIndex((item) => item.id === edge.dataset.connectionOutput);
+          if (topicIndex < 0 || outputIndex < 0) return;
+          const topicY = connectionNodeY(topicIndex, layout) + layout.nodeHeight / 2;
+          const outputY = connectionNodeY(outputIndex, layout) + layout.nodeHeight / 2;
+          edge.setAttribute("d", `M${layout.topicX + layout.topicWidth} ${topicY} C${layout.firstCurveX} ${topicY}, ${layout.secondCurveX} ${outputY}, ${layout.outputX} ${outputY}`);
+        });
       }
 
       function buildConnectionsMap() {
@@ -1299,6 +1369,7 @@
         });
         researchTopics.forEach((item, index) => addConnectionNode(item, index, "topic"));
         researchOutputs.forEach((item, index) => addConnectionNode(item, index, "output"));
+        syncResearchMatrixGeometry();
       }
 
       function buildResearchMenuLinks() {
@@ -1723,6 +1794,7 @@
       });
 
       buildConnectionsMap();
+      window.addEventListener("resize", syncResearchMatrixGeometry);
       buildResearchMenuLinks();
       connectionsRabbi.addEventListener("click", reset);
       connectionsResearch.addEventListener("click", setConnectionsIdle);
