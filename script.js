@@ -1384,7 +1384,7 @@ async function updateVisitorCounter() {
     return;
   }
 
-  const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits/";
+  const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits";
   const cachedCount = readCachedVisitorCount();
   if (cachedCount !== null) showVisitorCount(cachedCount, true);
   else {
@@ -1404,7 +1404,7 @@ async function updateVisitorCounter() {
   try {
     let count;
     try {
-      count = await requestVisitorCount(countedThisSession ? counterBase : `${counterBase}up/`);
+      count = await requestVisitorCount(countedThisSession ? counterBase : `${counterBase}/up`);
     } catch {
       // If incrementing was slow or rate-limited, retrieve the current value without incrementing again.
       count = await requestVisitorCount(counterBase);
