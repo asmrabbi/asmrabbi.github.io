@@ -1410,6 +1410,7 @@
         }
 
         const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits";
+        const counterReadUrl = `${counterBase}/`;
         const cachedCount = readNetworkCounterCache();
         if (cachedCount !== null) showNetworkVisitorCount(cachedCount, true);
         else {
@@ -1428,9 +1429,9 @@
         try {
           let count;
           try {
-            count = await requestNetworkVisitorCount(countedThisSession ? counterBase : `${counterBase}/up`);
+            count = await requestNetworkVisitorCount(countedThisSession ? counterReadUrl : `${counterBase}/up`);
           } catch {
-            count = await requestNetworkVisitorCount(counterBase);
+            count = await requestNetworkVisitorCount(counterReadUrl);
           }
           showNetworkVisitorCount(count);
           try { localStorage.setItem(networkCounterCacheKey, String(count)); } catch { /* Keep the live value visible. */ }
