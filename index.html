@@ -673,6 +673,12 @@
 
     #profile-network-linked-breadcrumb #graph-status { color: var(--tone-green); }
 
+    #profile-network-linked-breadcrumb .visitor-counter {
+      color: var(--tone-blue);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
     #profile-network-linked-breadcrumb .footer-contact {
       display: flex;
       gap: 8px;
@@ -753,6 +759,9 @@
       #profile-network-linked-breadcrumb .child-node { text-align: left; white-space: normal; }
       #profile-network-linked-breadcrumb .detail-zone h2 { font-size: 1.25rem; }
       #profile-network-linked-breadcrumb .footer-contact { margin-left: 0; }
+      #profile-network-linked-breadcrumb .graph-footer { gap: 4px 10px; font-size: 11px; }
+      #profile-network-linked-breadcrumb .footer-contact { gap: 6px; }
+      #profile-network-linked-breadcrumb .footer-contact svg { width: 16px; height: 16px; }
     }
 
     @media (min-width: 901px) and (min-height: 760px) {
@@ -843,6 +852,7 @@
 
   <footer class="graph-footer text-small">
     <span>© 2026 Rabbi, Lutfor Rahman</span>
+    <span class="visitor-counter" id="network-visitor-counter" role="status" aria-live="polite" title="Counts page visits, not unique people"><span id="network-visitor-count-value">—</span> <span id="network-visitor-count-label">page visits</span></span>
     <span id="graph-status">PROFILE NETWORK / READY</span>
     <span class="footer-contact" aria-label="Contact options">
       <a href="mailto:asmlrr@plan.aau.dk" aria-label="Email" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14"></rect><path d="m4 7 8 6 8-6"></path></svg></a>
@@ -1351,6 +1361,90 @@
       }
 
       useSharedCompactContent(managedContent);
+
+      const networkVisitorCounter = root.querySelector("#network-visitor-counter");
+      const networkVisitorCountValue = root.querySelector("#network-visitor-count-value");
+      const networkVisitorCountLabel = root.querySelector("#network-visitor-count-label");
+      const networkCounterCacheKey = "rabbi-profile-last-visit-count";
+      const networkVisitSessionKey = "rabbi-profile-visit-counted";
+
+      function readNetworkCounterCache() {
+        try {
+          const count = Number(localStorage.getItem(networkCounterCacheKey));
+          return Number.isFinite(count) && count > 0 ? count : null;
+        } catch {
+          return null;
+        }
+      }
+
+      function showNetworkVisitorCount(count, cached = false) {
+        networkVisitorCountValue.textContent = count.toLocaleString();
+        networkVisitorCountLabel.textContent = "page visits";
+        networkVisitorCounter.title = cached
+          ? "Last available page-visit count; updating in the background"
+          : "Counts page visits, not unique people";
+      }
+
+      async function requestNetworkVisitorCount(url) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 15000);
+        try {
+          const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+          if (!response.ok) throw new Error("Counter unavailable");
+          const responseData = await response.json();
+          const count = Number(responseData.count ?? responseData.value);
+          if (!Number.isFinite(count)) throw new Error("Invalid counter response");
+          return count;
+        } finally {
+          window.clearTimeout(timeout);
+        }
+      }
+
+      async function updateNetworkVisitorCounter() {
+        const localPreview = location.protocol === "file:" || location.hostname === "127.0.0.1" || location.hostname === "localhost";
+        if (localPreview) {
+          networkVisitorCountValue.textContent = "Counter";
+          networkVisitorCountLabel.textContent = "preview";
+          networkVisitorCounter.title = "The page-visit counter activates after the website is published";
+          return;
+        }
+
+        const counterBase = "https://api.counterapi.dev/v1/lutfor-rahman-rabbi-profile/page-visits/";
+        const cachedCount = readNetworkCounterCache();
+        if (cachedCount !== null) showNetworkVisitorCount(cachedCount, true);
+        else {
+          networkVisitorCountValue.textContent = "…";
+          networkVisitorCountLabel.textContent = "page visits";
+          networkVisitorCounter.title = "Updating the page-visit count";
+        }
+
+        let countedThisSession = false;
+        try {
+          countedThisSession = sessionStorage.getItem(networkVisitSessionKey) === "yes";
+        } catch {
+          // The public count still works when a browser blocks session storage.
+        }
+
+        try {
+          let count;
+          try {
+            count = await requestNetworkVisitorCount(countedThisSession ? counterBase : `${counterBase}up/`);
+          } catch {
+            count = await requestNetworkVisitorCount(counterBase);
+          }
+          showNetworkVisitorCount(count);
+          try { localStorage.setItem(networkCounterCacheKey, String(count)); } catch { /* Keep the live value visible. */ }
+          try { sessionStorage.setItem(networkVisitSessionKey, "yes"); } catch { /* Do not hide a valid count. */ }
+        } catch {
+          if (cachedCount === null) {
+            networkVisitorCountValue.textContent = "—";
+            networkVisitorCountLabel.textContent = "visits temporarily unavailable";
+            networkVisitorCounter.title = "The counter service is temporarily unavailable";
+          }
+        }
+      }
+
+      updateNetworkVisitorCounter();
 
       const CONNECTION_SVG_NS = "http://www.w3.org/2000/svg";
 
