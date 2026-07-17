@@ -309,6 +309,15 @@
       display: grid;
       align-content: start;
       gap: 9px;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-color: var(--border) transparent;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      touch-action: pan-y;
+      padding-right: 8px;
       padding-left: 20px;
       border-left: 1px solid var(--foreground);
     }
@@ -360,6 +369,99 @@
       background: var(--border);
       content: "";
     }
+
+    #profile-network-linked-breadcrumb .grouped-overview {
+      display: grid;
+      gap: 7px;
+    }
+
+    #profile-network-linked-breadcrumb .grouped-overview-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 2px;
+    }
+
+    #profile-network-linked-breadcrumb .grouped-overview-toggle {
+      color: var(--tone-blue);
+      font-size: var(--font-size-small);
+    }
+
+    #profile-network-linked-breadcrumb .inline-group {
+      display: grid;
+      gap: 4px;
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-toggle {
+      justify-content: space-between;
+      font-weight: 600;
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-toggle[aria-expanded="true"] {
+      border-color: var(--tone-blue);
+      color: var(--tone-blue);
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-count {
+      margin-left: auto;
+      color: var(--muted-foreground);
+      font-size: var(--font-size-small);
+      font-weight: 400;
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-children {
+      position: relative;
+      display: grid;
+      gap: 4px;
+      padding-left: 18px;
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-children[hidden] { display: none; }
+
+    #profile-network-linked-breadcrumb .inline-group-children::before {
+      position: absolute;
+      top: 2px;
+      bottom: 7px;
+      left: 4px;
+      width: 1px;
+      background: var(--border);
+      content: "";
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-children .child-node {
+      min-height: 28px;
+      padding-block: 4px;
+      font-size: 12px;
+      white-space: normal;
+    }
+
+    #profile-network-linked-breadcrumb .inline-group-children .child-node::before { left: -14px; }
+
+    .site-go-top {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 1000;
+      display: none;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid var(--foreground);
+      border-radius: 50%;
+      background: var(--background);
+      color: var(--foreground);
+      box-shadow: 0 4px 18px color-mix(in srgb, var(--foreground) 18%, transparent);
+      font: 700 22px/1 var(--font-mono);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 150ms ease, transform 150ms ease, background 150ms ease, color 150ms ease;
+    }
+
+    .site-go-top:hover,
+    .site-go-top:focus-visible { background: var(--foreground); color: var(--background); }
+
+    .site-go-top.is-visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 
     #profile-network-linked-breadcrumb .leaf-copy {
       display: grid;
@@ -633,6 +735,7 @@
       #profile-network-linked-breadcrumb .connections-map { width: 760px; max-width: none; height: auto; }
       #profile-network-linked-breadcrumb .reflection-prose { column-count: 1; }
       #profile-network-linked-breadcrumb .graph-footer { flex-wrap: wrap; gap: 6px 14px; }
+      .site-go-top { display: grid; }
     }
 
     @media (max-width: 480px) {
@@ -744,6 +847,8 @@
     </span>
   </footer>
 
+  <button class="site-go-top" id="network-go-top" type="button" aria-label="Go to the top of the page" title="Go to top">↑</button>
+
   <script>
     (async () => {
       const root = document.getElementById("profile-network-linked-breadcrumb");
@@ -757,6 +862,7 @@
       const home = root.querySelector("#graph-home");
       const homeButton = root.querySelector("#graph-home-button");
       const status = root.querySelector("#graph-status");
+      const detailZone = root.querySelector(".detail-zone");
       const detailEdge = root.querySelector(".detail-edge");
       const connectionsView = root.querySelector("#connections-view");
       const connectionsMap = root.querySelector("#connections-map");
@@ -772,7 +878,9 @@
       let selectedConnection = null;
       let showAllConnections = false;
       let returnToConnectionsOnBack = false;
+      let groupedOverviewReturn = null;
       let connectionRestoreTimer = null;
+      const groupedExpansionState = new WeakMap();
       const managedContent = await (window.ProfileContent?.ready || Promise.resolve(null));
 
       const edgeOrigins = {
@@ -942,6 +1050,7 @@
         teaching: {
           title: "Teaching",
           intro: "Choose an institution, then a course. Each terminal node contains semesters, role, topics, and a university link.",
+          groupedOverview: true,
           children: [
             { title: "AAU", intro: "Lecturer and course coordinator in Techno-Anthropology.", children: [
               leaf("Scripting, Data Mining & ML", "AAU · AUTUMN 2026 · LECTURER + COORDINATOR", "Hands-on computational work combined with critical interpretation of data-driven systems.", "Python · R · data gathering · cleaning · EDA · visualisation · predictive power · agentic AI", [{ label: "Course page", url: "https://moduler.aau.dk/course/2023-2024/TBTANK22103" }]),
@@ -965,6 +1074,7 @@
         experience: {
           title: "Experience",
           intro: "Academic work is the default branch; industry practice remains visible as connected evidence of delivery experience.",
+          inlineGroupIndex: 0,
           children: [
             { title: "Academic + research", intro: "University teaching, supervision, and collaborative research.", children: [
               leaf("Lecturer · AAU", "2026–PRESENT", "Course leadership and teaching in MSc Techno-Anthropology.", "AI ethics · requirements · data/ML · course design · supervision"),
@@ -1068,7 +1178,11 @@
           } : data.research.children[0],
           { title: "Ongoing Research + Project + Writing", ongoing: true, intro: "Research, project development, and writing currently in progress.", children: ongoingWorks }
         ];
-        data.publications.children = (research.outputs || []).filter((item) => item.publication !== false).map((item) => compactLeaf(item));
+        const compactPublications = (research.outputs || []).filter((item) => item.publication !== false).map((item) => compactLeaf(item));
+        data.publications.children = [
+          ...compactPublications.filter((item) => !item.ongoing),
+          ...compactPublications.filter((item) => item.ongoing)
+        ];
 
         const projects = profile.projects || {};
         data.projects.children = [
@@ -1096,11 +1210,13 @@
           return groups;
         }, {}));
         data.teaching.children = teachingGroups;
+        data.teaching.groupedOverview = true;
 
         data.experience.children = [
           { title: "Academic + research", intro: "University teaching, supervision, and collaborative research.", children: (profile.experience?.academic || []).map((item) => compactLeaf(item, { authors: false })) },
           { title: "Industry + professional", intro: "Requirements, technology delivery, policy research, partnerships, and compliance.", children: (profile.experience?.professional || []).map((item) => compactLeaf(item, { authors: false })) }
         ];
+        data.experience.inlineGroupIndex = 0;
         data.education.children = (profile.education || []).map((item) => compactLeaf({
           ...item,
           meta: [item.institution, item.year, item.duration, item.credits].filter(Boolean).join(" · ")
@@ -1347,6 +1463,7 @@
           button.className = "btn";
           button.textContent = entry.title.toUpperCase();
           button.addEventListener("click", () => {
+            groupedOverviewReturn = null;
             if (entry === data.research) {
               selectSection("research");
               openConnections();
@@ -1364,12 +1481,13 @@
       }
 
       function renderLeaf(item, parentTitle) {
+        detailZone.scrollTop = 0;
         renderBreadcrumb(item);
         title.textContent = item.title;
         clearCopy();
         if (item.meta) {
           const meta = document.createElement("p");
-          meta.className = item.meta.includes("IN PROGRESS") || item.meta.startsWith("NOW") ? "text-small leaf-meta ongoing-text" : "text-small leaf-meta";
+          meta.className = /IN PROGRESS/i.test(item.meta) || item.meta.startsWith("NOW") ? "text-small leaf-meta ongoing-text" : "text-small leaf-meta";
           meta.textContent = item.meta;
           copy.append(meta);
         }
@@ -1399,7 +1517,113 @@
         status.textContent = `${activeSection.toUpperCase()} / ${item.title.toUpperCase()}`;
       }
 
+      function setChildButtonLabel(button, child) {
+        const visibleYear = activeSection === "publications" && child.meta ? child.meta.split(" · ")[0] : "";
+        const isOngoingPublication = activeSection === "publications" && Boolean(child.ongoing);
+        if (isOngoingPublication) {
+          const ongoing = document.createElement("span"); ongoing.className = "ongoing-text"; ongoing.textContent = "(Ongoing)";
+          const year = document.createElement("span"); year.className = "year-text"; year.textContent = visibleYear;
+          button.append(ongoing, " ", year, ` / ${child.title}`);
+        } else if (child.ongoing) {
+          const ongoing = document.createElement("span"); ongoing.className = "ongoing-text"; ongoing.textContent = "◆ ONGOING RESEARCH + PROJECT + WRITING";
+          button.append(ongoing);
+        } else if (visibleYear) {
+          const year = document.createElement("span"); year.className = "year-text"; year.textContent = visibleYear;
+          button.append(year, ` / ${child.title}`);
+        } else button.textContent = child.title;
+      }
+
+      function makeChildButton(child, parentNode, options = {}) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `btn child-node${options.className ? ` ${options.className}` : ""}`;
+        setChildButtonLabel(button, child);
+        button.addEventListener("click", () => {
+          const previousTrail = [...nodeTrail];
+          nodeTrail = options.trail ? [...options.trail] : [...nodeTrail, parentNode];
+          groupedOverviewReturn = options.returnNode ? { node: options.returnNode, trail: previousTrail } : null;
+          back.textContent = `← ${(options.backLabel || parentNode.title).toUpperCase()}`;
+          back.hidden = false;
+          if (child.children) renderNode(child, parentNode.title);
+          else renderLeaf(child, parentNode.title);
+        });
+        return button;
+      }
+
+      function renderGroupedOverview(node, groups, trailingChildren = []) {
+        let expandedGroups = groupedExpansionState.get(node);
+        if (!expandedGroups) {
+          expandedGroups = new Set();
+          groupedExpansionState.set(node, expandedGroups);
+        }
+
+        const overview = document.createElement("div");
+        overview.className = "grouped-overview";
+        const controls = document.createElement("div");
+        controls.className = "grouped-overview-controls";
+        const expandAll = document.createElement("button");
+        expandAll.type = "button";
+        expandAll.className = "btn grouped-overview-toggle";
+        controls.append(expandAll);
+        overview.append(controls);
+
+        const renderedGroups = groups.map((group) => {
+          const section = document.createElement("section");
+          section.className = "inline-group";
+          const toggle = document.createElement("button");
+          toggle.type = "button";
+          toggle.className = "btn child-node inline-group-toggle";
+          const groupTitle = document.createElement("span");
+          groupTitle.textContent = group.title;
+          const count = document.createElement("span");
+          count.className = "inline-group-count";
+          count.textContent = `${(group.children || []).length}`;
+          toggle.append(groupTitle, count);
+          const nested = document.createElement("div");
+          nested.className = "inline-group-children";
+          (group.children || []).forEach((child) => {
+            nested.append(makeChildButton(child, group, {
+              className: "inline-leaf-node",
+              trail: [...nodeTrail, node, group],
+              returnNode: node,
+              backLabel: node.title
+            }));
+          });
+          const setExpanded = (expanded) => {
+            toggle.setAttribute("aria-expanded", String(expanded));
+            nested.hidden = !expanded;
+            if (expanded) expandedGroups.add(group);
+            else expandedGroups.delete(group);
+          };
+          setExpanded(expandedGroups.has(group));
+          toggle.addEventListener("click", () => {
+            setExpanded(toggle.getAttribute("aria-expanded") !== "true");
+            updateExpandAll();
+          });
+          section.append(toggle, nested);
+          overview.append(section);
+          return { group, setExpanded };
+        });
+
+        function updateExpandAll() {
+          const allExpanded = renderedGroups.length > 0 && renderedGroups.every(({ group }) => expandedGroups.has(group));
+          expandAll.textContent = allExpanded ? "COLLAPSE ALL" : "EXPAND ALL";
+          expandAll.setAttribute("aria-expanded", String(allExpanded));
+        }
+
+        expandAll.addEventListener("click", () => {
+          const shouldExpand = !renderedGroups.every(({ group }) => expandedGroups.has(group));
+          renderedGroups.forEach(({ setExpanded }) => setExpanded(shouldExpand));
+          updateExpandAll();
+        });
+        updateExpandAll();
+
+        trailingChildren.forEach((child) => overview.append(makeChildButton(child, node)));
+        children.replaceChildren(overview);
+      }
+
       function renderNode(node, parentTitle, nodeKind = "SUB-NODE") {
+        detailZone.scrollTop = 0;
         renderBreadcrumb(node);
         title.textContent = node.title;
         clearCopy();
@@ -1409,33 +1633,15 @@
           intro.textContent = `[${node.intro}]`;
           copy.append(intro);
         }
-        const buttons = (node.children || []).map((child) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "btn child-node";
-          const visibleYear = activeSection === "publications" && child.meta ? child.meta.split(" · ")[0] : "";
-          const isOngoingPublication = activeSection === "publications" && Boolean(child.ongoing);
-          if (isOngoingPublication) {
-            const ongoing = document.createElement("span"); ongoing.className = "ongoing-text"; ongoing.textContent = "(Ongoing)";
-            const year = document.createElement("span"); year.className = "year-text"; year.textContent = visibleYear;
-            button.append(ongoing, " ", year, ` / ${child.title}`);
-          } else if (child.ongoing) {
-            const ongoing = document.createElement("span"); ongoing.className = "ongoing-text"; ongoing.textContent = "◆ ONGOING RESEARCH + PROJECT + WRITING";
-            button.append(ongoing);
-          } else if (visibleYear) {
-            const year = document.createElement("span"); year.className = "year-text"; year.textContent = visibleYear;
-            button.append(year, ` / ${child.title}`);
-          } else button.textContent = child.title;
-          button.addEventListener("click", () => {
-            nodeTrail.push(node);
-            back.textContent = `← ${node.title.toUpperCase()}`;
-            back.hidden = false;
-            if (child.children) renderNode(child, node.title);
-            else renderLeaf(child, node.title);
-          });
-          return button;
-        });
-        children.replaceChildren(...buttons);
+
+        if (node.groupedOverview) {
+          renderGroupedOverview(node, node.children || []);
+        } else if (Number.isInteger(node.inlineGroupIndex) && node.children?.[node.inlineGroupIndex]) {
+          const inlineGroup = node.children[node.inlineGroupIndex];
+          renderGroupedOverview(node, [inlineGroup], node.children.filter((_, index) => index !== node.inlineGroupIndex));
+        } else {
+          children.replaceChildren(...(node.children || []).map((child) => makeChildButton(child, node)));
+        }
         status.textContent = `${activeSection.toUpperCase()} / ${node.title.toUpperCase()}`;
       }
 
@@ -1443,6 +1649,7 @@
         connectionsView.hidden = true;
         delete root.dataset.mode;
         returnToConnectionsOnBack = false;
+        groupedOverviewReturn = null;
         activeSection = section;
         nodeTrail = [];
         root.dataset.active = section;
@@ -1459,6 +1666,7 @@
         connectionsView.hidden = true;
         delete root.dataset.mode;
         returnToConnectionsOnBack = false;
+        groupedOverviewReturn = null;
         activeSection = null;
         nodeTrail = [];
         root.removeAttribute("data-active");
@@ -1491,6 +1699,16 @@
       homeButton.addEventListener("click", resetToHome);
       back.addEventListener("click", () => {
         if (!activeSection) return;
+        if (groupedOverviewReturn) {
+          const destination = groupedOverviewReturn;
+          groupedOverviewReturn = null;
+          nodeTrail = [...destination.trail];
+          renderNode(destination.node);
+          const immediateParent = nodeTrail.length ? nodeTrail[nodeTrail.length - 1].title : "Home";
+          back.textContent = immediateParent === "Home" ? "← PREVIOUS" : `← ${immediateParent.toUpperCase()}`;
+          back.hidden = nodeTrail.length === 0;
+          return;
+        }
         if (returnToConnectionsOnBack && activeSection === "research" && nodeTrail.length === 1) {
           openConnections();
           return;
@@ -1533,6 +1751,20 @@
     button.addEventListener("click", () => {
       applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
     });
+  })();
+</script>
+<script>
+  (() => {
+    const button = document.getElementById("network-go-top");
+    if (!button) return;
+    const mobile = window.matchMedia("(max-width: 900px)");
+    const update = () => button.classList.toggle("is-visible", mobile.matches && window.scrollY > 280);
+    window.addEventListener("scroll", update, { passive: true });
+    mobile.addEventListener?.("change", update);
+    button.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    });
+    update();
   })();
 </script>
 </body>

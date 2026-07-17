@@ -1435,6 +1435,18 @@ updateVisitorCounter();
 
 document.querySelector("#current-year").textContent = new Date().getFullYear();
 
+const siteGoTop = document.querySelector("#site-go-top");
+if (siteGoTop) {
+  const mobileGoTop = window.matchMedia("(max-width: 760px)");
+  const updateGoTop = () => siteGoTop.classList.toggle("is-visible", mobileGoTop.matches && window.scrollY > 360);
+  window.addEventListener("scroll", updateGoTop, { passive: true });
+  mobileGoTop.addEventListener?.("change", updateGoTop);
+  siteGoTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+  updateGoTop();
+}
+
 const navLinks = [...navigation.querySelectorAll('a[href^="#"]')];
 const sections = navLinks.map((link) => document.querySelector(link.getAttribute("href"))).filter(Boolean);
 

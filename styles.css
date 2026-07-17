@@ -2538,6 +2538,40 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
   }
 }
 
+.site-go-top {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1200;
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--text);
+  border-radius: 50%;
+  background: var(--page);
+  color: var(--text);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--text) 18%, transparent);
+  font: 700 22px/1 var(--map-font);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 150ms ease, transform 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.site-go-top:hover,
+.site-go-top:focus-visible {
+  background: var(--text);
+  color: var(--page);
+}
+
+.site-go-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 @media (max-width: 760px) {
   html {
     scroll-padding-top: 70px;
@@ -2553,6 +2587,8 @@ html[data-theme="dark"] img:not(.profile-photo img):not(.orbit-avatar) {
   }
 
   .site-name small { display: none; }
+
+  .site-go-top { display: grid; }
 
   .menu-button {
     display: block;
