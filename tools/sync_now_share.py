@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT_PATH = ROOT / "content" / "site-content.json"
-INDEX_PATH = ROOT / "index.html"
+INDEX_PATH = ROOT / "detailed.html"
 OUTPUT_PATH = ROOT / "public" / "assets" / "images" / "social-preview.png"
 WIDTH, HEIGHT = 1200, 627
 
@@ -116,7 +116,7 @@ def sync_meta(now: dict[str, str]) -> None:
     site_url = os.environ.get("SITE_URL", "").rstrip("/")
     version_source = json.dumps(now, ensure_ascii=False, sort_keys=True).encode("utf-8")
     version = hashlib.sha256(version_source).hexdigest()[:10]
-    page_url = f"{site_url}/?now={version}#now" if site_url else f"?now={version}#now"
+    page_url = f"{site_url}/detailed.html?now={version}#now" if site_url else f"detailed.html?now={version}#now"
     image_url = f"{site_url}/public/assets/images/social-preview.png?v={version}" if site_url else f"public/assets/images/social-preview.png?v={version}"
     title = f"{now['eyebrow']} | Rabbi, Lutfor Rahman"
     description = f"{now['title']} {now['deadline']}"
@@ -153,7 +153,7 @@ def sync_meta(now: dict[str, str]) -> None:
         flags=re.DOTALL,
     )
     if count != 1:
-        raise RuntimeError("Could not find the Now social metadata block in index.html")
+        raise RuntimeError("Could not find the Now social metadata block in detailed.html")
     INDEX_PATH.write_text(updated, encoding="utf-8")
 
 
