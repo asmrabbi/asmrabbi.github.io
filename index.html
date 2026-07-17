@@ -184,6 +184,7 @@
       border-radius: 50%;
       transform: translate(-50%, -50%);
       isolation: isolate;
+      will-change: transform;
     }
 
     #profile-network-linked-breadcrumb .portrait-node img {
@@ -252,31 +253,22 @@
       font-family: inherit;
       white-space: nowrap;
       transition: opacity 160ms ease;
+      will-change: transform;
     }
 
     #profile-network-linked-breadcrumb[data-active] .main-node:not([aria-pressed="true"]) { opacity: 0.35; }
     #profile-network-linked-breadcrumb .node-content {
       display: inline-flex;
       align-items: center;
-      animation: network-node-drift var(--drift-duration) ease-in-out infinite;
     }
-    #profile-network-linked-breadcrumb .main-node:hover .node-content,
-    #profile-network-linked-breadcrumb .main-node:focus-visible .node-content,
-    #profile-network-linked-breadcrumb .graph-stage:hover .node-content,
-    #profile-network-linked-breadcrumb .graph-stage:focus-within .node-content { animation-play-state: paused; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="n"] { top: 10%; left: 23%; --drift-x: 2px; --drift-y: -4px; --drift-duration: 10.5s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="ne"] { top: 20%; left: 37%; --drift-x: 4px; --drift-y: -2px; --drift-duration: 12s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="e"] { top: 46%; left: 42%; --drift-x: 5px; --drift-y: 2px; --drift-duration: 11.2s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="se"] { top: 72%; left: 37%; --drift-x: 3px; --drift-y: 4px; --drift-duration: 12.7s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="s"] { top: 86%; left: 23%; --drift-x: -2px; --drift-y: 4px; --drift-duration: 10.8s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="sw"] { top: 72%; left: 10%; --drift-x: -4px; --drift-y: 3px; --drift-duration: 12.3s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="w"] { top: 46%; left: 7%; --drift-x: -5px; --drift-y: -1px; --drift-duration: 11.6s; }
-    #profile-network-linked-breadcrumb .main-node[data-pos="nw"] { top: 20%; left: 10%; --drift-x: -3px; --drift-y: -4px; --drift-duration: 13s; }
-
-    @keyframes network-node-drift {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(var(--drift-x), var(--drift-y)); }
-    }
+    #profile-network-linked-breadcrumb .main-node[data-pos="n"] { top: 10%; left: 23%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="ne"] { top: 20%; left: 37%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="e"] { top: 46%; left: 42%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="se"] { top: 72%; left: 37%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="s"] { top: 86%; left: 23%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="sw"] { top: 72%; left: 10%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="w"] { top: 46%; left: 7%; }
+    #profile-network-linked-breadcrumb .main-node[data-pos="nw"] { top: 20%; left: 10%; }
 
     #profile-network-linked-breadcrumb .node-mark {
       display: inline-block;
@@ -875,6 +867,8 @@
       const children = root.querySelector("#graph-children");
       const back = root.querySelector("#graph-back");
       const home = root.querySelector("#graph-home");
+      const graphStage = root.querySelector(".graph-stage");
+      const portraitCaption = root.querySelector(".portrait-caption");
       const homeButton = root.querySelector("#graph-home-button");
       const status = root.querySelector("#graph-status");
       const detailZone = root.querySelector(".detail-zone");
@@ -909,23 +903,130 @@
         experience: [500, 299], education: [260, 250], activities: [200, 153], reflection: [280, 61]
       };
 
+      const forceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const forceStates = new Map(sectionButtons.map((button, index) => [button.dataset.section, {
+        element: button,
+        phaseX: index * 0.91 + 0.45,
+        phaseY: index * 1.17 + 1.3,
+        periodX: 7.2 + (index % 4) * 0.85,
+        periodY: 8.1 + ((index + 2) % 4) * 0.9,
+        radiusX: 5.5 + (index % 3) * 1.15,
+        radiusY: 4.5 + ((index + 1) % 3) * 1.05,
+        paused: false,
+        pausedAt: 0,
+        pausedDuration: 0,
+        offset: { x: 0, y: 0 }
+      }]));
+      const portraitForceState = {
+        element: home,
+        phaseX: 1.2,
+        phaseY: 2.35,
+        periodX: 9.6,
+        periodY: 8.7,
+        radiusX: 5.2,
+        radiusY: 4.4,
+        paused: false,
+        pausedAt: 0,
+        pausedDuration: 0,
+        offset: { x: 0, y: 0 }
+      };
+      let lastForceFrame = 0;
+
+      function setForcePaused(state, paused) {
+        if (paused === state.paused) return;
+        const now = performance.now();
+        if (paused) {
+          state.paused = true;
+          state.pausedAt = now;
+        } else {
+          state.paused = false;
+          state.pausedDuration += now - state.pausedAt;
+        }
+      }
+
+      function bindForcePause(state) {
+        state.element.addEventListener("pointerenter", () => setForcePaused(state, true));
+        state.element.addEventListener("pointerleave", () => setForcePaused(state, false));
+        state.element.addEventListener("focus", () => setForcePaused(state, true));
+        state.element.addEventListener("blur", () => setForcePaused(state, false));
+      }
+
+      forceStates.forEach(bindForcePause);
+      bindForcePause(portraitForceState);
+
+      function forceOffset(state, frameTime, scale) {
+        const effectiveNow = state.paused ? state.pausedAt : frameTime;
+        const elapsed = Math.max(0, effectiveNow - state.pausedDuration) / 1000;
+        return {
+          x: scale * state.radiusX * (Math.sin((elapsed / state.periodX) * Math.PI * 2 + state.phaseX) + 0.22 * Math.sin((elapsed / (state.periodY * 0.72)) * Math.PI * 2 + state.phaseY)),
+          y: scale * state.radiusY * (Math.sin((elapsed / state.periodY) * Math.PI * 2 + state.phaseY) + 0.18 * Math.cos((elapsed / (state.periodX * 0.8)) * Math.PI * 2 + state.phaseX))
+        };
+      }
+
       function syncGraphGeometry() {
         const mobile = window.matchMedia("(max-width: 900px)").matches;
         const origins = mobile ? mobileEdgeOrigins : desktopEdgeOrigins;
         const portrait = mobile ? [500, 153] : [230, 293];
+        const viewScaleX = 1000 / Math.max(graphStage.clientWidth, 1);
+        const viewScaleY = 610 / Math.max(graphStage.clientHeight, 1);
+        const portraitOffset = portraitForceState.offset;
         Object.assign(edgeOrigins, origins);
         edges.forEach((edge) => {
           const destination = origins[edge.dataset.edge];
           if (!destination) return;
-          edge.setAttribute("x1", portrait[0]);
-          edge.setAttribute("y1", portrait[1]);
-          edge.setAttribute("x2", destination[0]);
-          edge.setAttribute("y2", destination[1]);
+          const destinationOffset = forceStates.get(edge.dataset.edge)?.offset || { x: 0, y: 0 };
+          edge.setAttribute("x1", portrait[0] + portraitOffset.x * viewScaleX);
+          edge.setAttribute("y1", portrait[1] + portraitOffset.y * viewScaleY);
+          edge.setAttribute("x2", destination[0] + destinationOffset.x * viewScaleX);
+          edge.setAttribute("y2", destination[1] + destinationOffset.y * viewScaleY);
         });
+
+        if (!mobile && activeSection) {
+          const [edgeX, edgeY] = origins[activeSection];
+          const activeOffset = forceStates.get(activeSection)?.offset || { x: 0, y: 0 };
+          const movingX = edgeX + activeOffset.x * viewScaleX;
+          const movingY = edgeY + activeOffset.y * viewScaleY;
+          detailEdge.setAttribute("d", root.dataset.mode === "connections"
+            ? `M${movingX} ${movingY} C380 ${movingY} 425 180 460 180`
+            : `M${movingX} ${movingY} C450 ${movingY} 480 180 500 180`);
+        }
+      }
+
+      function renderForceMotion(frameTime) {
+        if (frameTime - lastForceFrame < 32) {
+          requestAnimationFrame(renderForceMotion);
+          return;
+        }
+        lastForceFrame = frameTime;
+
+        if (forceMotionQuery.matches) {
+          forceStates.forEach((state) => {
+            state.offset = { x: 0, y: 0 };
+            state.element.style.removeProperty("transform");
+          });
+          portraitForceState.offset = { x: 0, y: 0 };
+          home.style.removeProperty("transform");
+          portraitCaption?.style.removeProperty("transform");
+          syncGraphGeometry();
+          return;
+        }
+
+        const mobileScale = window.matchMedia("(max-width: 900px)").matches ? 0.72 : 1;
+        forceStates.forEach((state) => {
+          state.offset = forceOffset(state, frameTime, mobileScale);
+          state.element.style.transform = `translate(calc(-50% + ${state.offset.x.toFixed(2)}px), calc(-50% + ${state.offset.y.toFixed(2)}px))`;
+        });
+        portraitForceState.offset = forceOffset(portraitForceState, frameTime, mobileScale);
+        home.style.transform = `translate(calc(-50% + ${portraitForceState.offset.x.toFixed(2)}px), calc(-50% + ${portraitForceState.offset.y.toFixed(2)}px))`;
+        if (portraitCaption) portraitCaption.style.transform = `translate(calc(-50% + ${portraitForceState.offset.x.toFixed(2)}px), ${portraitForceState.offset.y.toFixed(2)}px)`;
+        syncGraphGeometry();
+        requestAnimationFrame(renderForceMotion);
       }
 
       syncGraphGeometry();
       window.addEventListener("resize", syncGraphGeometry);
+      forceMotionQuery.addEventListener("change", () => requestAnimationFrame(renderForceMotion));
+      requestAnimationFrame(renderForceMotion);
 
       const leaf = (title, meta, body, tags = "", links = [], authorHtml = "") => ({ title, meta, body, tags, links, authorHtml });
 
