@@ -1414,7 +1414,7 @@
           button.type = "button";
           button.className = "btn child-node";
           const visibleYear = activeSection === "publications" && child.meta ? child.meta.split(" · ")[0] : "";
-          const isOngoingPublication = activeSection === "publications" && child.meta && child.meta.includes("IN PROGRESS");
+          const isOngoingPublication = activeSection === "publications" && Boolean(child.ongoing);
           if (isOngoingPublication) {
             const ongoing = document.createElement("span"); ongoing.className = "ongoing-text"; ongoing.textContent = "(Ongoing)";
             const year = document.createElement("span"); year.className = "year-text"; year.textContent = visibleYear;
